@@ -1,7 +1,7 @@
 #!/bin/bash
 # ----------------------------------------------------------------------
 # File: entrypoint.sh
-# Author: AI Assistant
+# Author: iHub-2020
 # Date: 2026-01-13
 # Version: 1.0.0
 # Description: Startup script to initialize config and start Flask
