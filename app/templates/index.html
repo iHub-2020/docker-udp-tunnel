@@ -6,218 +6,348 @@ Version: 1.0.0
 Description: Main Web UI mimicking OpenWrt LUCI interface
 -->
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UDP Tunnel Configuration</title>
-    <!-- 引入 Bootstrap CSS (深色模式支持) -->
+    <title>UDP Tunnel Manager</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- 引入自定义 CSS -->
-    <link href="/static/css/style.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { background-color: #212529; color: #e9ecef; }
+        .card { background-color: #2b3035; border-color: #495057; }
+        .form-control, .form-select { background-color: #212529; border-color: #495057; color: #e9ecef; }
+        .form-control:focus, .form-select:focus { background-color: #2b3035; color: #fff; }
+        .nav-tabs .nav-link { color: #adb5bd; }
+        .nav-tabs .nav-link.active { background-color: #2b3035; border-color: #495057 #495057 #2b3035; color: #fff; }
+        .status-dot { height: 10px; width: 10px; background-color: #bbb; border-radius: 50%; display: inline-block; }
+        .status-dot.active { background-color: #198754; box-shadow: 0 0 5px #198754; }
+        .advanced-settings { border-left: 3px solid #0d6efd; padding-left: 15px; margin-top: 15px; }
+    </style>
 </head>
-<body class="bg-dark text-light">
-
-<div id="app" class="container py-4">
-    <!-- 头部 -->
-    <header class="mb-4 border-bottom border-secondary pb-3">
-        <h3>UDP Tunnel Configuration</h3>
-        <div class="d-flex align-items-center">
-            <span class="badge me-2" :class="status.global_running ? 'bg-success' : 'bg-secondary'">
-                Service Status: {% raw %}{{ status.global_running ? 'Running' : 'Stopped' }}{% endraw %}
-            </span>
-            <small class="text-muted">{% raw %}{{ status.tunnels.length }}{% endraw %} tunnels active</small>
+<body>
+    <div id="app" class="container py-4">
+        <!-- 顶部状态栏 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3><i class="bi bi-shield-lock"></i> UDP Tunnel Manager</h3>
+            <div>
+                <span class="badge" :class="globalStatus ? 'bg-success' : 'bg-secondary'">
+                    ${ globalStatus ? '运行中' : '已停止' }
+                </span>
+                <button class="btn btn-primary btn-sm ms-2" @click="saveConfig" :disabled="saving">
+                    <span v-if="saving" class="spinner-border spinner-border-sm"></span>
+                    ${ saving ? '应用中...' : '保存并应用' }
+                </button>
+            </div>
         </div>
-    </header>
 
-    <!-- 警告框 -->
-    <div class="alert alert-warning border-warning text-warning-emphasis">
-        <strong>Critical Safety Information</strong>
-        <ul class="mb-0 small">
-            <li>FakeTCP mode REQUIRES iptables rules to block kernel TCP RST packets.</li>
-            <li>Docker container must run with NET_ADMIN capability.</li>
+        <!-- 警告信息 -->
+        <div class="alert alert-warning small">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            注意：FakeTCP 模式需要 iptables 规则支持。Docker 容器必须具有 NET_ADMIN 权限。
+        </div>
+
+        <!-- 选项卡导航 -->
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link" :class="{ active: currentTab === 'global' }" href="#" @click.prevent="currentTab = 'global'">全局设置</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" :class="{ active: currentTab === 'servers' }" href="#" @click.prevent="currentTab = 'servers'">服务端实例 (-s)</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" :class="{ active: currentTab === 'clients' }" href="#" @click.prevent="currentTab = 'clients'">客户端实例 (-c)</a>
+            </li>
         </ul>
-    </div>
 
-    <!-- 标签页导航 -->
-    <ul class="nav nav-tabs border-secondary mb-4">
-        <li class="nav-item">
-            <a class="nav-link" :class="{active: currentTab === 'global'}" @click="currentTab = 'global'" href="#">Global Settings</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" :class="{active: currentTab === 'server'}" @click="currentTab = 'server'" href="#">Server Instances</a>
-        </li>
-        <li class="nav-item">
-            <a class="nav-link" :class="{active: currentTab === 'client'}" @click="currentTab = 'client'" href="#">Client Instances</a>
-        </li>
-    </ul>
-
-    <!-- 全局设置 -->
-    <div v-show="currentTab === 'global'" class="card bg-dark border-secondary">
-        <div class="card-body">
+        <!-- 全局设置内容 -->
+        <div v-if="currentTab === 'global'" class="card p-4">
             <div class="form-check form-switch mb-3">
-                <input class="form-check-input" type="checkbox" v-model="config.global.enabled" id="enableService">
-                <label class="form-check-label" for="enableService">Enable Service</label>
-                <div class="form-text text-muted">Master switch. If disabled, no tunnels will run.</div>
+                <input class="form-check-input" type="checkbox" v-model="config.global.enabled" id="globalEnable">
+                <label class="form-check-label" for="globalEnable">启用服务 (主开关)</label>
             </div>
-            <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" v-model="config.global.keep_iptables" id="keepIptables">
-                <label class="form-check-label" for="keepIptables">Keep Iptables Rules</label>
+            <div class="mb-3">
+                <label class="form-label">默认日志等级</label>
+                <select class="form-select w-auto" v-model="config.global.log_level">
+                    <option value="fatal">Fatal</option>
+                    <option value="error">Error</option>
+                    <option value="warn">Warn</option>
+                    <option value="info">Info (Default)</option>
+                    <option value="debug">Debug</option>
+                    <option value="trace">Trace</option>
+                </select>
             </div>
         </div>
-    </div>
 
-    <!-- 服务端实例 -->
-    <div v-show="currentTab === 'server'" class="card bg-dark border-secondary">
-        <div class="card-body">
-            <div v-for="(server, index) in config.servers" :key="index" class="border border-secondary rounded p-3 mb-3 position-relative">
-                <button @click="removeInstance('servers', index)" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2">Delete</button>
-                <h5 class="card-title mb-3">Server #{% raw %}{{ index + 1 }}{% endraw %}</h5>
-                
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">Enabled</label>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" v-model="server.enabled">
+        <!-- 服务端列表 -->
+        <div v-if="currentTab === 'servers'">
+            <div v-for="(server, index) in config.servers" :key="index" class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="status-dot me-2" :class="{ active: isRunning('server_'+index) }"></span>
+                        <strong>${ server.alias || 'Server #' + (index + 1) }</strong>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-danger" @click="removeInstance('servers', index)">删除</button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- 基础配置行 -->
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label small">启用</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" v-model="server.enabled">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">别名</label>
+                            <input type="text" class="form-control form-control-sm" v-model="server.alias" placeholder="备注">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">监听端口 (-l)</label>
+                            <input type="number" class="form-control form-control-sm" v-model.number="server.listen_port">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">转发目标IP (-r)</label>
+                            <input type="text" class="form-control form-control-sm" v-model="server.forward_ip" placeholder="127.0.0.1">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">转发目标端口</label>
+                            <input type="number" class="form-control form-control-sm" v-model.number="server.forward_port">
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Alias</label>
-                        <input type="text" class="form-control bg-secondary text-light border-0" v-model="server.alias">
+
+                    <!-- 密码行 -->
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label small">密码 (-k)</label>
+                            <input type="text" class="form-control form-control-sm" v-model="server.password">
+                        </div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Listen Port (WAN)</label>
-                        <input type="number" class="form-control bg-secondary text-light border-0" v-model.number="server.listen_port">
+
+                    <!-- 高级设置折叠 -->
+                    <div class="mt-3">
+                        <a href="#" class="text-decoration-none small" @click.prevent="server.showAdvanced = !server.showAdvanced">
+                            ${ server.showAdvanced ? '收起高级设置' : '展开高级设置' } <i class="bi" :class="server.showAdvanced ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                        </a>
+                        <div v-if="server.showAdvanced" class="advanced-settings row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small">Raw Mode</label>
+                                <select class="form-select form-select-sm" v-model="server.raw_mode">
+                                    <option value="faketcp">FakeTCP (推荐)</option>
+                                    <option value="udp">UDP</option>
+                                    <option value="icmp">ICMP</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Cipher Mode</label>
+                                <select class="form-select form-select-sm" v-model="server.cipher_mode">
+                                    <option value="aes128cbc">AES-128-CBC (推荐)</option>
+                                    <option value="xor">XOR (快速)</option>
+                                    <option value="none">None (不加密)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Auth Mode</label>
+                                <select class="form-select form-select-sm" v-model="server.auth_mode">
+                                    <option value="hmac_sha1">HMAC-SHA1 (推荐)</option>
+                                    <option value="md5">MD5</option>
+                                    <option value="simple">Simple</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                             <div class="col-md-3">
+                                <label class="form-label small">Seq Mode</label>
+                                <select class="form-select form-select-sm" v-model="server.seq_mode">
+                                    <option :value="3">Mode 3 (推荐)</option>
+                                    <option :value="4">Mode 4</option>
+                                    <option :value="0">Mode 0</option>
+                                </select>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small">额外参数</label>
+                                <input type="text" class="form-control form-control-sm" v-model="server.extra_args" placeholder="例如: --fix-gro --keep-rule">
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Password (-k)</label>
-                        <input type="password" class="form-control bg-secondary text-light border-0" v-model="server.password">
+                </div>
+            </div>
+            <button class="btn btn-outline-success w-100" @click="addInstance('servers')"><i class="bi bi-plus-lg"></i> 添加服务端</button>
+        </div>
+
+        <!-- 客户端列表 (结构类似服务端，字段略有不同) -->
+        <div v-if="currentTab === 'clients'">
+            <div v-for="(client, index) in config.clients" :key="index" class="card mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="status-dot me-2" :class="{ active: isRunning('client_'+index) }"></span>
+                        <strong>${ client.alias || 'Client #' + (index + 1) }</strong>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Forward To IP</label>
-                        <input type="text" class="form-control bg-secondary text-light border-0" v-model="server.forward_ip" placeholder="127.0.0.1">
+                    <div>
+                        <button class="btn btn-sm btn-outline-danger" @click="removeInstance('clients', index)">删除</button>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Forward To Port</label>
-                        <input type="number" class="form-control bg-secondary text-light border-0" v-model.number="server.forward_port">
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            <label class="form-label small">启用</label>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" v-model="client.enabled">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">别名</label>
+                            <input type="text" class="form-control form-control-sm" v-model="client.alias">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small">VPS 地址 (-r)</label>
+                            <input type="text" class="form-control form-control-sm" v-model="client.server_ip">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">VPS 端口</label>
+                            <input type="number" class="form-control form-control-sm" v-model.number="client.server_port">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label small">本地监听端口 (-l)</label>
+                            <input type="number" class="form-control form-control-sm" v-model.number="client.local_port">
+                        </div>
                     </div>
                     
-                    <!-- 高级设置折叠 -->
-                    <div class="col-12">
-                        <details>
-                            <summary class="text-info cursor-pointer">Advanced Settings</summary>
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-4">
-                                    <label class="form-label">Raw Mode</label>
-                                    <select class="form-select bg-secondary text-light border-0" v-model="server.raw_mode">
-                                        <option value="faketcp">FakeTCP (Recommended)</option>
-                                        <option value="udp">UDP</option>
-                                        <option value="icmp">ICMP</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Cipher Mode</label>
-                                    <select class="form-select bg-secondary text-light border-0" v-model="server.cipher_mode">
-                                        <option value="xor">XOR (Fast)</option>
-                                        <option value="aes128cbc">AES128CBC</option>
-                                        <option value="none">None</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label">Extra Arguments</label>
-                                    <input type="text" class="form-control bg-secondary text-light border-0" v-model="server.extra_args" placeholder="e.g. --seq-mode 3">
-                                </div>
-                            </div>
-                        </details>
-                    </div>
-                </div>
-            </div>
-            <button @click="addInstance('servers')" class="btn btn-success">+ Add Server</button>
-        </div>
-    </div>
-
-    <!-- 客户端实例 -->
-    <div v-show="currentTab === 'client'" class="card bg-dark border-secondary">
-        <div class="card-body">
-            <div v-for="(client, index) in config.clients" :key="index" class="border border-secondary rounded p-3 mb-3 position-relative">
-                <button @click="removeInstance('clients', index)" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-2">Delete</button>
-                <h5 class="card-title mb-3">Client #{% raw %}{{ index + 1 }}{% endraw %}</h5>
-                
-                <div class="row g-3">
-                    <div class="col-md-2">
-                        <label class="form-label">Enabled</label>
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" v-model="client.enabled">
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label small">密码 (-k)</label>
+                            <input type="text" class="form-control form-control-sm" v-model="client.password">
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Alias</label>
-                        <input type="text" class="form-control bg-secondary text-light border-0" v-model="client.alias">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">VPS Address</label>
-                        <input type="text" class="form-control bg-secondary text-light border-0" v-model="client.server_ip">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label">VPS Port</label>
-                        <input type="number" class="form-control bg-secondary text-light border-0" v-model.number="client.server_port">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Local Listen Port</label>
-                        <input type="number" class="form-control bg-secondary text-light border-0" v-model.number="client.local_port">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Password (-k)</label>
-                        <input type="password" class="form-control bg-secondary text-light border-0" v-model="client.password">
-                    </div>
 
-                    <!-- 高级设置折叠 -->
-                    <div class="col-12">
-                        <details>
-                            <summary class="text-info cursor-pointer">Advanced Settings</summary>
-                            <div class="row g-3 mt-2">
-                                <div class="col-md-4">
-                                    <label class="form-label">Raw Mode</label>
-                                    <select class="form-select bg-secondary text-light border-0" v-model="client.raw_mode">
-                                        <option value="faketcp">FakeTCP (Recommended)</option>
-                                        <option value="udp">UDP</option>
-                                        <option value="icmp">ICMP</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Cipher Mode</label>
-                                    <select class="form-select bg-secondary text-light border-0" v-model="client.cipher_mode">
-                                        <option value="xor">XOR (Fast)</option>
-                                        <option value="aes128cbc">AES128CBC</option>
-                                        <option value="none">None</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-12">
-                                    <label class="form-label">Extra Arguments</label>
-                                    <input type="text" class="form-control bg-secondary text-light border-0" v-model="client.extra_args" placeholder="e.g. --source-ip 1.2.3.4">
-                                </div>
+                    <div class="mt-3">
+                        <a href="#" class="text-decoration-none small" @click.prevent="client.showAdvanced = !client.showAdvanced">
+                            ${ client.showAdvanced ? '收起高级设置' : '展开高级设置' } <i class="bi" :class="client.showAdvanced ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                        </a>
+                        <div v-if="client.showAdvanced" class="advanced-settings row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small">Raw Mode</label>
+                                <select class="form-select form-select-sm" v-model="client.raw_mode">
+                                    <option value="faketcp">FakeTCP (推荐)</option>
+                                    <option value="udp">UDP</option>
+                                    <option value="icmp">ICMP</option>
+                                </select>
                             </div>
-                        </details>
+                            <div class="col-md-3">
+                                <label class="form-label small">Cipher Mode</label>
+                                <select class="form-select form-select-sm" v-model="client.cipher_mode">
+                                    <option value="aes128cbc">AES-128-CBC (推荐)</option>
+                                    <option value="xor">XOR (快速)</option>
+                                    <option value="none">None</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small">Source IP</label>
+                                <input type="text" class="form-control form-control-sm" v-model="client.source_ip" placeholder="可选: 伪造源IP">
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label small">额外参数</label>
+                                <input type="text" class="form-control form-control-sm" v-model="client.extra_args">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            <button @click="addInstance('clients')" class="btn btn-success">+ Add Client</button>
+            <button class="btn btn-outline-success w-100" @click="addInstance('clients')"><i class="bi bi-plus-lg"></i> 添加客户端</button>
         </div>
+
     </div>
 
-    <!-- 底部操作栏 -->
-    <div class="fixed-bottom bg-dark border-top border-secondary p-3 text-end">
-        <div class="container">
-            <button @click="saveConfig" class="btn btn-primary" :disabled="saving">
-                {% raw %}{{ saving ? 'Saving...' : 'Save & Apply' }}{% endraw %}
-            </button>
-        </div>
-    </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const { createApp, ref, onMounted } = Vue;
 
-<!-- 引入 Vue.js 和 Axios -->
-<script src="https://cdn.jsdelivr.net/npm/vue@3.2.47/dist/vue.global.prod.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script src="/static/js/app.js"></script>
+        createApp({
+            delimiters: ['${', '}'], // 关键：修改分隔符，避免与 Jinja2 冲突
+            setup() {
+                const currentTab = ref('global');
+                const config = ref({
+                    global: { enabled: false, log_level: 'info' },
+                    servers: [],
+                    clients: []
+                });
+                const status = ref([]);
+                const saving = ref(false);
+
+                // 加载配置
+                const loadConfig = async () => {
+                    try {
+                        const res = await axios.get('/api/config');
+                        // 确保数据结构存在
+                        config.value = {
+                            global: res.data.global || { enabled: false },
+                            servers: (res.data.servers || []).map(s => ({...s, showAdvanced: false})),
+                            clients: (res.data.clients || []).map(c => ({...c, showAdvanced: false}))
+                        };
+                    } catch (e) {
+                        console.error("Load config failed", e);
+                    }
+                };
+
+                // 获取运行状态
+                const loadStatus = async () => {
+                    try {
+                        const res = await axios.get('/api/status');
+                        status.value = res.data.tunnels || [];
+                    } catch (e) {
+                        console.error("Load status failed", e);
+                    }
+                };
+
+                // 保存配置
+                const saveConfig = async () => {
+                    saving.value = true;
+                    try {
+                        await axios.post('/api/config', config.value);
+                        await loadStatus(); // 重新获取状态
+                        alert('配置已保存并应用！');
+                    } catch (e) {
+                        alert('保存失败: ' + e.message);
+                    } finally {
+                        saving.value = false;
+                    }
+                };
+
+                const addInstance = (type) => {
+                    const template = type === 'servers' 
+                        ? { enabled: true, listen_port: 29900, forward_ip: '127.0.0.1', forward_port: 51820, raw_mode: 'faketcp', cipher_mode: 'aes128cbc', auth_mode: 'hmac_sha1', showAdvanced: true }
+                        : { enabled: true, server_ip: '', server_port: 29900, local_port: 3333, raw_mode: 'faketcp', cipher_mode: 'aes128cbc', auth_mode: 'hmac_sha1', showAdvanced: true };
+                    config.value[type].push(template);
+                };
+
+                const removeInstance = (type, index) => {
+                    if(confirm('确定要删除这个实例吗？')) {
+                        config.value[type].splice(index, 1);
+                    }
+                };
+
+                const isRunning = (id) => {
+                    const s = status.value.find(item => item.id === id);
+                    return s && s.running;
+                };
+
+                const globalStatus = Vue.computed(() => {
+                    return status.value.some(s => s.running);
+                });
+
+                onMounted(() => {
+                    loadConfig();
+                    loadStatus();
+                    setInterval(loadStatus, 5000); // 每5秒刷新状态
+                });
+
+                return {
+                    currentTab, config, saving, saveConfig, addInstance, removeInstance, isRunning, globalStatus
+                };
+            }
+        }).mount('#app');
+    </script>
 </body>
 </html>
