@@ -10,8 +10,9 @@ version: '3.8'
 
 services:
   udp-tunnel:
-    image: udp-tunnel:latest
-    container_name: udp-tunnel-web
+    # 使用 GitHub Container Registry 镜像
+    image: ghcr.io/ihub-2020/docker-udp-tunnel:latest
+    container_name: udp-tunnel-manager
     restart: unless-stopped
     
     # [关键] Host 模式
@@ -49,4 +50,5 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+
       start_period: 10s
