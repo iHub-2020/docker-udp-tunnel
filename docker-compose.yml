@@ -8,8 +8,8 @@ version: '3.8'
 
 services:
   udp-tunnel:
-    build: .
     image: udp-tunnel:latest
+
     container_name: udp-tunnel-web
     restart: always
     network_mode: host
@@ -18,14 +18,16 @@ services:
       - NET_ADMIN
       
     volumes:
-      - ./config:/app/config
-      - ./logs:/app/logs
+      - /opt/udp-tunnel/config:/app/config
+      - /opt/udp-tunnel/logs:/app/logs
       # [可选] 证书目录
       # 如果启用 HTTPS (ENABLE_HTTPS=true)，请取消下方注释并确保证书存在
       # - ./certs:/app/certs
       
     environment:
       - FLASK_ENV=production
+      # 👇【关键修改】加上这一行，强制 Python 把 /app/app 加入搜索路径
+      - PYTHONPATH=/app/app
       # [核心配置] 控制是否开启 HTTPS
       # false = 使用 HTTP (默认，无需证书)
       # true  = 使用 HTTPS (需要挂载证书目录)
