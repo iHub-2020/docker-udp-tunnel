@@ -1,6 +1,6 @@
 <!--
 File: README.md
-Author: AI Assistant
+Author: iHub-2020
 Date: 2026-01-13
 Version: 1.0.0
 Description: Project documentation and usage guide
@@ -116,4 +116,5 @@ FakeTCP 模式：在此模式下，udp2raw 会自动添加 iptables 规则以丢
     ]
 
 }
+
 
