@@ -9,17 +9,17 @@ import subprocess
 import logging
 import shlex
 import time
-import psutil
+import os
+
+logger = logging.getLogger(__name__)
 
 class ProcessManager:
     def __init__(self):
-        self.processes = {}  # 存储进程对象: {id: subprocess.Popen}
-        self.logger = logging.getLogger("ProcessManager")
-        self.binary_path = "/usr/bin/udp2raw"
+        self.processes = {}  # 存储子进程对象
 
     def stop_all(self):
-        """停止所有运行中的 udp2raw 进程"""
-        self.logger.info("Stopping all tunnels...")
+        """停止所有隧道进程"""
+        logger.info("Stopping all tunnels...")
         for pid, proc in self.processes.items():
             if proc.poll() is None:
                 proc.terminate()
@@ -28,83 +28,110 @@ class ProcessManager:
                 except subprocess.TimeoutExpired:
                     proc.kill()
         self.processes = {}
+        # 清理可能残留的 iptables 规则 (如果非 docker host 模式可能需要)
+        # os.system("iptables -F") 
 
-    def start_from_config(self, config):
-        """根据配置启动所有隧道"""
-        self.stop_all() # 先清理旧进程
+    def start_tunnels(self, config):
+        """根据配置启动隧道"""
+        self.stop_all()
 
-        if not config.get("global", {}).get("enabled", False):
-            self.logger.info("Service is globally disabled.")
+        if not config.get('global', {}).get('enabled', False):
+            logger.info("Service is globally disabled.")
             return
 
-        # 启动服务端实例
-        for idx, server in enumerate(config.get("servers", [])):
-            if server.get("enabled"):
-                self._start_instance("server", idx, server)
+        global_conf = config.get('global', {})
+        
+        # 1. 启动 Servers
+        for idx, server in enumerate(config.get('servers', [])):
+            if server.get('enabled'):
+                self._start_instance('server', server, global_conf, idx)
 
-        # 启动客户端实例
-        for idx, client in enumerate(config.get("clients", [])):
-            if client.get("enabled"):
-                self._start_instance("client", idx, client)
+        # 2. 启动 Clients
+        for idx, client in enumerate(config.get('clients', [])):
+            if client.get('enabled'):
+                self._start_instance('client', client, global_conf, idx)
 
-    def _start_instance(self, mode, idx, cfg):
-        """启动单个实例"""
-        cmd = [self.binary_path]
+    def _start_instance(self, mode, instance_conf, global_conf, index):
+        """构建并执行 udp2raw 命令"""
+        cmd = ["udp2raw"]
 
-        # 模式选择 (-s or -c)
-        if mode == "server":
+        # 模式选择
+        if mode == 'server':
             cmd.append("-s")
-            # Server: Listen on WAN (-l), Forward to Local (-r)
-            cmd.extend(["-l", f"{cfg.get('listen_addr', '0.0.0.0')}:{cfg.get('listen_port')}"])
-            cmd.extend(["-r", f"{cfg.get('forward_ip', '127.0.0.1')}:{cfg.get('forward_port')}"])
+            # 服务端监听地址
+            listen_addr = instance_conf.get('listen_ip', '0.0.0.0')
+            listen_port = instance_conf.get('listen_port', 29900)
+            cmd.append(f"-l{listen_addr}:{listen_port}")
+            
+            # 服务端转发目标
+            forward_ip = instance_conf.get('forward_ip', '127.0.0.1')
+            forward_port = instance_conf.get('forward_port', 51820)
+            cmd.append(f"-r{forward_ip}:{forward_port}")
+            
         else:
             cmd.append("-c")
-            # Client: Listen on Local (-l), Forward to Remote (-r)
-            cmd.extend(["-l", f"{cfg.get('local_addr', '127.0.0.1')}:{cfg.get('local_port')}"])
-            cmd.extend(["-r", f"{cfg.get('server_ip')}:{cfg.get('server_port')}"])
-
-        # 通用参数
-        cmd.extend(["-k", str(cfg.get("password", "passwd"))])
-        
-        if cfg.get("raw_mode"):
-            cmd.extend(["--raw-mode", cfg.get("raw_mode")])
-        
-        if cfg.get("cipher_mode"):
-            cmd.extend(["--cipher-mode", cfg.get("cipher_mode")])
+            # 客户端监听本地
+            local_ip = instance_conf.get('local_ip', '127.0.0.1')
+            local_port = instance_conf.get('local_port', 3333)
+            cmd.append(f"-l{local_ip}:{local_port}")
             
-        if cfg.get("auth_mode"):
-            cmd.extend(["--auth-mode", cfg.get("auth_mode")])
+            # 客户端连接远程
+            remote_ip = instance_conf.get('server_ip', '127.0.0.1')
+            remote_port = instance_conf.get('server_port', 29900)
+            cmd.append(f"-r{remote_ip}:{remote_port}")
 
-        # 自动添加 iptables 规则 (-a)
-        if cfg.get("auto_rule", True):
+        # --- 通用核心参数 (补全缺失参数) ---
+        
+        # 密码
+        cmd.append(f"-k{instance_conf.get('password', 'secret')}")
+        
+        # Raw Mode (faketcp, udp, icmp)
+        raw_mode = instance_conf.get('raw_mode', 'faketcp')
+        cmd.append(f"--raw-mode={raw_mode}")
+        
+        # Cipher Mode (xor, aes128cbc, none)
+        cipher_mode = instance_conf.get('cipher_mode', 'aes128cbc')
+        cmd.append(f"--cipher-mode={cipher_mode}")
+        
+        # Auth Mode (md5, hmac_sha1, simple, none)
+        auth_mode = instance_conf.get('auth_mode', 'hmac_sha1')
+        cmd.append(f"--auth-mode={auth_mode}")
+        
+        # 自动添加 iptables (-a)
+        if instance_conf.get('auto_rule', True):
             cmd.append("-a")
+            
+        # --- 高级参数 ---
+        
+        # Seq Mode (模拟 TCP 序列号行为)
+        if 'seq_mode' in instance_conf:
+            cmd.append(f"--seq-mode={instance_conf['seq_mode']}")
+            
+        # Source IP (伪造源 IP)
+        if 'source_ip' in instance_conf and instance_conf['source_ip']:
+            cmd.append(f"--source-ip={instance_conf['source_ip']}")
+            
+        # Log Level
+        log_level = instance_conf.get('log_level', global_conf.get('log_level', 'info'))
+        level_map = {'fatal': 1, 'error': 2, 'warn': 3, 'info': 4, 'debug': 5, 'trace': 6}
+        cmd.append(f"--log-level={level_map.get(log_level, 4)}")
 
-        # 高级参数
-        if cfg.get("source_ip"):
-            cmd.extend(["--source-ip", cfg.get("source_ip")])
-            
-        if cfg.get("source_port"):
-            cmd.extend(["--source-port", str(cfg.get("source_port"))])
-            
-        if cfg.get("seq_mode"):
-             cmd.extend(["--seq-mode", str(cfg.get("seq_mode"))])
-             
-        if cfg.get("extra_args"):
-            # 安全地分割额外参数字符串
-            cmd.extend(shlex.split(cfg.get("extra_args")))
+        # Extra Arguments (用户自定义参数)
+        if instance_conf.get('extra_args'):
+            cmd.extend(shlex.split(instance_conf['extra_args']))
 
         # 启动进程
+        logger.info(f"Starting {mode} #{index+1}: {' '.join(cmd)}")
         try:
-            self.logger.info(f"Starting {mode} #{idx}: {' '.join(cmd)}")
             proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True
             )
-            self.processes[f"{mode}_{idx}"] = proc
+            self.processes[f"{mode}_{index}"] = proc
         except Exception as e:
-            self.logger.error(f"Failed to start {mode} #{idx}: {e}")
+            logger.error(f"Failed to start {mode} #{index+1}: {e}")
 
     def get_status(self):
         """获取当前运行状态"""
@@ -112,9 +139,8 @@ class ProcessManager:
         for key, proc in self.processes.items():
             is_running = proc.poll() is None
             status_list.append({
-                "id": key,
-                "running": is_running,
-                "pid": proc.pid if is_running else None
+                'id': key,
+                'running': is_running,
+                'pid': proc.pid if is_running else None
             })
-
         return status_list
