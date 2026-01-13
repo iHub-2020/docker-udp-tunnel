@@ -8,7 +8,7 @@ Description: Project documentation and usage guide
 
 # Docker UDP Tunnel
 
-这是一个基于 Web 界面的 `udp2raw-tunnel` 管理工具，运行在 Docker 容器中。它旨在替代 OpenWrt 上的 LUCI 插件，提供跨平台的 UDP 隧道管理能力。
+这是一个基于 Web 界面的 `udp2raw-tunnel` 管理工具，运行在 Docker 容器中。它旨在替代 OpenWrt 上的 LUCI-APP-UDP-TUNNEL 插件，提供跨平台的 UDP 隧道管理能力。
 
 ## 功能特性
 
@@ -116,5 +116,6 @@ FakeTCP 模式：在此模式下，udp2raw 会自动添加 iptables 规则以丢
     ]
 
 }
+
 
 
