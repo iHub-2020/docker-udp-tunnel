@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # File: app/process_manager.py
-# Author: AI Assistant
+# Author: iHub-2020
 # Date: 2026-01-13
 # Version: 1.0.0
 # Description: Manages udp2raw subprocesses based on configuration
@@ -116,4 +116,5 @@ class ProcessManager:
                 "running": is_running,
                 "pid": proc.pid if is_running else None
             })
+
         return status_list
