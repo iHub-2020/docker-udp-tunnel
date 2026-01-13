@@ -9,16 +9,40 @@ version: '3.8'
 
 services:
   udp-tunnel:
+    # 1. 构建配置：指向当前目录 Dockerfile
     build: .
     image: udp-tunnel:latest
     container_name: udp-tunnel-web
     restart: always
-    # udp2raw 需要操作原生 socket 和 iptables，推荐使用 host 模式
+    
+    # 2. 网络模式：保持 Host 模式
+    # udp2raw 需要处理底层网络包，Host 模式性能最好且问题最少
     network_mode: host
+    
+    # 3. 权限配置：必须拥有网络管理权限
     cap_add:
       - NET_ADMIN
+      
+    # 4. 挂载卷配置 (关键更新)
     volumes:
+      # 配置文件挂载
       - ./config:/app/config
+      # 日志文件挂载
+      - ./logs:/app/logs
+      # [新增] 证书目录挂载
+      # 请将你的 .crt 和 .key 文件放入宿主机的 ./certs 目录中
+      - ./certs:/app/certs
+      
     environment:
-
       - FLASK_ENV=production
+      # [可选] 如果新版支持通过环境变量自定义端口或开启/关闭 HTTPS
+      # - WEB_PORT=5000
+      # - ENABLE_HTTPS=true
+      
+    # 5. 健康检查 (关键更新)
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
