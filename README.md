@@ -28,27 +28,27 @@ docker-udp-tunnel/
 ├── docker-compose.yml   # 编排文件
 ├── entrypoint.sh        # 启动脚本
 └── requirements.txt     # Python 依赖
-
-快速开始
+```
+## 快速开始
 1. 前置要求
 安装 Docker 和 Docker Compose。
 宿主机需要支持 iptables（因为 udp2raw 需要操作防火墙规则）。
 2. 构建并启动
 在项目根目录下运行：
 
-bash
+```bash
 docker-compose up -d --build
-
+```
 3. 访问界面
 打开浏览器访问：http://localhost:5000
 
 4. 查看日志
 如果遇到问题，可以查看容器日志：
 
-bash
+```bash
 docker logs -f udp-tunnel-web
-
-配置说明
+```
+## 配置说明
 核心参数解释
 参数	说明
 Raw Mode	底层发包模式。推荐 faketcp（伪装成 TCP 连接），可绕过 UDP QOS。
@@ -56,13 +56,11 @@ Cipher Mode	加密模式。xor 速度快，aes128cbc 更安全。
 Listen Port	本地监听端口。
 Forward To	流量转发的目标地址和端口。
 Password	隧道密码，服务端和客户端必须一致。
-注意事项
+## 注意事项
 权限问题：容器必须以 --cap-add=NET_ADMIN 运行，且推荐使用 network_mode: host，否则 udp2raw 无法操作 raw socket 和 iptables。
 FakeTCP 模式：在此模式下，udp2raw 会自动添加 iptables 规则以丢弃内核对伪造 TCP 包的 RST 响应。请勿手动清除容器内的 iptables 规则。
 手动配置
 虽然推荐使用 Web 界面，但您也可以直接修改 config/udp-tunnel.json 文件，修改后需重启容器生效。
-
-json
 
 #### 12. `config/udp-tunnel.json` (可选样例)
 虽然 `entrypoint.sh` 会在文件不存在时自动生成默认配置，但您可以手动创建此文件以预设一些配置。
@@ -103,4 +101,5 @@ json
             "auto_rule": true
         }
     ]
+
 }
