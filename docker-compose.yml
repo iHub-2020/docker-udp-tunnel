@@ -1,0 +1,52 @@
+# ----------------------------------------------------------------------
+# File: docker-compose.yml
+# Author: iHub-2020
+# Date: 2026-01-13
+# Version: 1.2.0
+# Description: Docker Compose configuration with Host Network mode
+# Updated: Added HOST_UID/HOST_GID environment variables for permission handling
+# ----------------------------------------------------------------------
+version: '3.8'
+
+services:
+  udp-tunnel:
+    image: udp-tunnel:latest
+    container_name: udp-tunnel-web
+    restart: unless-stopped
+    
+    # [关键] Host 模式
+    # udp2raw 需要处理底层网络包，Host 模式性能最好且配置最简单
+    # 如果不使用 host 模式，需要极其复杂的 iptables 映射
+    network_mode: host
+    
+    # [关键] 权限
+    # 允许容器操作网络接口和 iptables
+    cap_add:
+      - NET_ADMIN
+      
+    volumes:
+      - ./config:/app/config
+      - ./logs:/app/logs
+      # - /path/to/your/certs:/app/config/certs:ro  # 只读挂载证书
+      
+    environment:
+      - FLASK_ENV=production
+      # [HTTPS 开关]
+      # true:  开启 HTTPS (自动生成自签名证书或使用挂载证书)
+      # false: 开启 HTTP (默认，适合配合 Nginx 反代使用)
+      - ENABLE_HTTPS=false
+      # [权限处理]
+      # 传递宿主机用户ID，用于日志文件权限处理
+      - HOST_UID=1000
+      - HOST_GID=1000
+      
+    # [健康检查]
+    # 注意：由于使用了 host 模式，localhost 指向的是宿主机
+    # 但在容器内部执行 healthcheck 命令时，localhost 依然是指向容器自身
+    healthcheck:
+      # 使用 curl 的 -k 参数忽略证书错误，同时支持 HTTP 和 HTTPS
+      test: ["CMD-SHELL", "curl -k -f http://127.0.0.1:5000/health || curl -k -f https://127.0.0.1:5000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -1,0 +1,45 @@
+{
+    "global": {
+        "enabled": false,
+        "keep_iptables": true,
+        "wait_lock": true,
+        "retry_on_error": true,
+        "log_level": "info",
+        "theme": "dark"
+    },
+    "servers": [
+        {
+            "enabled": false,
+            "alias": "OpenWrt Server",
+            "listen_ip": "0.0.0.0",
+            "listen_port": 29900,
+            "forward_ip": "127.0.0.1",
+            "forward_port": 51820,
+            "password": "your_password",
+            "raw_mode": "faketcp",
+            "cipher_mode": "xor",
+            "auth_mode": "simple",
+            "auto_iptables": true,
+            "extra_args": ""
+        }
+    ],
+    "clients": [
+        {
+            "enabled": false,
+            "alias": "Connect to VPS",
+            "server_ip": "1.2.3.4",
+            "server_port": 29900,
+            "local_ip": "127.0.0.1",
+            "local_port": 3333,
+            "password": "your_password",
+            "raw_mode": "faketcp",
+            "cipher_mode": "xor",
+            "auth_mode": "simple",
+            "auto_iptables": true,
+            "source_ip": "",
+            "source_port": "",
+            "seq_mode": 3,
+            "extra_args": ""
+        }
+    ]
+}
