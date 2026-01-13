@@ -1,6 +1,6 @@
 # ----------------------------------------------------------------------
 # File: app/main.py
-# Author: AI Assistant
+# Author: iHub-2020
 # Date: 2026-01-13
 # Version: 1.0.0
 # Description: Flask web server entry point
@@ -47,4 +47,5 @@ def get_status():
     })
 
 if __name__ == '__main__':
+
     app.run(host='0.0.0.0', port=5000)
