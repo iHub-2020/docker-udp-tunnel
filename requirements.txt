@@ -5,7 +5,8 @@
 # Version: 1.0.0
 # Description: Python dependencies for the UDP Tunnel backend
 # ----------------------------------------------------------------------
-Flask==3.0.0
-flask-cors==4.0.0
+flask==3.0.0
+gunicorn==21.2.0
+requests==2.31.0
+psutil==5.9.0
 
-psutil==5.9.6
