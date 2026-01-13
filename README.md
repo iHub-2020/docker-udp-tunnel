@@ -42,34 +42,34 @@ docker-udp-tunnel/
 ├── requirements.txt          # Python 依赖列表
 ├── LICENSE                   # 开源许可证
 └── README.md                 # 项目文档
-
-快速开始
-1. 前置要求
+```
+## 快速开始
+### 1. 前置要求
 安装 Docker 和 Docker Compose
 宿主机支持 iptables
 容器需要 NET_ADMIN 权限（已在 compose 文件中配置）
-2. 构建并启动
-bash
+### 2. 构建并启动
+```bash
 # 克隆项目
 git clone https://github.com/iHub-2020/docker-udp-tunnel.git
 cd docker-udp-tunnel
 
 # 构建镜像并后台启动
 docker-compose up -d --build
-
-3. 访问界面
+```
+### 3. 访问界面
 默认 HTTP 模式：http://YOUR_IP:5000
 
-4. 开启 HTTPS（可选）
+### 4. 开启 HTTPS（可选）
 编辑 docker-compose.yml：
 
-yaml
+```yaml
 environment:
   - ENABLE_HTTPS=true
-
+```
 重启容器后访问 https://YOUR_IP:5000（浏览器会提示证书不安全，忽略即可）。
 
-配置参数说明
+### 配置参数说明
 参数	说明
 Mode	服务端 (Server) 或客户端 (Client)
 Raw Mode	底层发包模式。faketcp 伪装成 TCP，可绕过 UDP QoS
@@ -78,20 +78,20 @@ Listen Port	本地监听端口
 Forward To	流量转发的目标地址和端口
 Password	隧道密钥，服务端与客户端必须一致
 Seq Mode	序列号模式（仅客户端），用于对抗 TCP 检测
-注意事项
+### 注意事项
 Host 网络模式：推荐保持 network_mode: host。Bridge 模式下 udp2raw 无法正常捕获流量。
 
 iptables 规则：FakeTCP 模式下程序会自动添加 iptables 规则。容器运行时请勿手动清除宿主机的 INPUT 链规则，否则会导致连接中断。
 
-查看日志：
+### 查看日志：
 
-bash
+```bash
 docker logs -f udp-tunnel-web
-
-许可证
+```
+### 许可证
 MIT License
 
-markdown
+```markdown
 
 ## 主要改动
 
@@ -102,3 +102,4 @@ markdown
 5. **精简语句** - 删除冗余描述，更简洁
 6. **添加克隆命令** - 快速开始部分更完整
 7. **添加许可证章节** - 对应 LICENSE 文件
+```
