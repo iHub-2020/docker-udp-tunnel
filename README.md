@@ -22,13 +22,26 @@ Description: Project documentation and usage guide
 
 ```text
 docker-udp-tunnel/
-├── app/                 # 源码
-├── config/              # 配置挂载目录
-├── Dockerfile           # 镜像构建文件
-├── docker-compose.yml   # 编排文件
-├── entrypoint.sh        # 启动脚本
-└── requirements.txt     # Python 依赖
+├── app                     # 源码
+│   ├── config_manager.py
+│   ├── main.py
+│   ├── process_manager.py
+│   ├── static
+│   │   ├── css
+│   │   │   └── style.css
+│   │   └── js
+│   │       └── app.js
+│   └── templates
+│       └── index.html
+├── config                 # 配置挂载目录
+│   └── udp-tunnel.json
+├── docker-compose.yml     # 编排文件
+├── Dockerfile             # 镜像构建文件
+├── entrypoint.sh          # 启动脚本
+├── README.md
+└── requirements.txt       # Python 依赖
 ```
+
 ## 快速开始
 1. 前置要求
 安装 Docker 和 Docker Compose。
@@ -103,3 +116,4 @@ FakeTCP 模式：在此模式下，udp2raw 会自动添加 iptables 规则以丢
     ]
 
 }
+
