@@ -6,41 +6,41 @@
 # Description: Docker image build instructions for UDP Tunnel
 # ----------------------------------------------------------------------
 
-# 使用轻量级 Python 基础镜像
-FROM python:3.9-slim
+FROM python:3.9-alpine
 
-# 设置工作目录
+# 安装基础依赖 (iptables 是 udp2raw 必须的)
+RUN apk add --no-cache \
+    iptables \
+    libcap \
+    curl \
+    openssl \
+    bash
+
 WORKDIR /app
 
-# 安装系统依赖 (wget用于下载udp2raw, iptables用于raw socket操作)
-RUN apt-get update && apt-get install -y \
-    wget \
-    tar \
-    iptables \
-    procps \
-    && rm -rf /var/lib/apt/lists/*
-
-# 下载并安装 udp2raw 二进制文件 (使用官方预编译版本)
-# 注意：这里默认下载 amd64 版本，如果是 arm 架构需修改链接
-RUN wget https://github.com/wangyu-/udp2raw-tunnel/releases/download/20230206.0/udp2raw_binaries.tar.gz \
-    && tar -xzvf udp2raw_binaries.tar.gz \
-    && mv udp2raw_amd64 /usr/bin/udp2raw \
-    && chmod +x /usr/bin/udp2raw \
-    && rm udp2raw_binaries.tar.gz version.txt
-
-# 复制依赖文件并安装
+# 复制依赖并安装
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# 下载 udp2raw 二进制文件 (根据架构自动选择或固定 amd64，这里演示 amd64)
+# 实际部署建议根据构建平台下载对应的 binary
+RUN wget https://github.com/wangyu-/udp2raw-tunnel/releases/download/20230206.0/udp2raw_binaries.tar.gz \
+    && tar -xzvf udp2raw_binaries.tar.gz \
+    && mv udp2raw_amd64 /usr/local/bin/udp2raw \
+    && chmod +x /usr/local/bin/udp2raw \
+    && rm udp2raw_binaries.tar.gz version.txt
+
 # 复制应用代码
-COPY app/ /app/app/
-COPY entrypoint.sh /app/
+COPY . .
 
-# 设置权限
-RUN chmod +x /app/entrypoint.sh
+# 创建配置和日志目录
+RUN mkdir -p /app/config /app/logs
 
-# 暴露端口 (Web UI)
-EXPOSE 5000
+# 赋予脚本执行权限
+RUN chmod +x entrypoint.sh
 
-# 启动脚本
-ENTRYPOINT ["/app/entrypoint.sh"]
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD curl -k -f https://127.0.0.1:5000/health || exit 1
+
+ENTRYPOINT ["./entrypoint.sh"]
