@@ -2,48 +2,50 @@
 # File: docker-compose.yml
 # Author: iHub-2020
 # Date: 2026-01-13
-# Version: 1.0.0
-# Description: Docker Compose configuration
+# Version: 1.1.0 (支持 HTTP/HTTPS 切换)
 # ----------------------------------------------------------------------
 version: '3.8'
 
 services:
   udp-tunnel:
-    # 1. 构建配置：指向当前目录 Dockerfile
     build: .
     image: udp-tunnel:latest
     container_name: udp-tunnel-web
     restart: always
-    
-    # 2. 网络模式：保持 Host 模式
-    # udp2raw 需要处理底层网络包，Host 模式性能最好且问题最少
     network_mode: host
     
-    # 3. 权限配置：必须拥有网络管理权限
     cap_add:
       - NET_ADMIN
       
-    # 4. 挂载卷配置 (关键更新)
     volumes:
-      # 配置文件挂载
       - ./config:/app/config
-      # 日志文件挂载
       - ./logs:/app/logs
-      # [新增] 证书目录挂载
-      # 请将你的 .crt 和 .key 文件放入宿主机的 ./certs 目录中
-      - ./certs:/app/certs
+      # [可选] 证书目录
+      # 如果启用 HTTPS (ENABLE_HTTPS=true)，请取消下方注释并确保证书存在
+      # - ./certs:/app/certs
       
     environment:
       - FLASK_ENV=production
-      # [可选] 如果新版支持通过环境变量自定义端口或开启/关闭 HTTPS
-      # - WEB_PORT=5000
-      # - ENABLE_HTTPS=true
+      # [核心配置] 控制是否开启 HTTPS
+      # false = 使用 HTTP (默认，无需证书)
+      # true  = 使用 HTTPS (需要挂载证书目录)
+      - ENABLE_HTTPS=false
       
-    # 5. 健康检查 (关键更新)
+    # [健康检查重写]
+    # docker-compose 的配置会覆盖 Dockerfile 中的 HEALTHCHECK
     healthcheck:
-      test: ["CMD-SHELL", "curl -k -f https://127.0.0.1:5000/health || exit 1"]
+      # 这里使用逻辑判断：
+      # 如果是 HTTP 模式，curl http://...
+      # 如果是 HTTPS 模式，curl -k https://...
+      # 注意：为了兼容性，建议根据你实际选择的模式修改下面的 test 命令
+      
+      # --- 方案 A: 当前使用 HTTP 模式 (无证书) ---
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:5000/health || exit 1"]
+      
+      # --- 方案 B: 如果你开启了 HTTPS，请使用下面这行代替上面那行 ---
+      # test: ["CMD-SHELL", "curl -k -f https://127.0.0.1:5000/health || exit 1"]
+      
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
-
