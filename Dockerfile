@@ -8,38 +8,56 @@
 
 FROM python:3.9-alpine
 
-# 安装基础依赖 (iptables 是 udp2raw 必须的)
+# 1. 安装运行时依赖
+# iptables: udp2raw 核心依赖
+# libcap: 权限控制
+# curl: 健康检查用
+# openssl: 生成 SSL 证书用
+# bash: 脚本支持
+# libstdc++: udp2raw 二进制文件通常需要
+# gcompat: 让 Alpine (musl) 能运行 glibc 编译的二进制文件 (关键修复)
 RUN apk add --no-cache \
     iptables \
     libcap \
     curl \
     openssl \
-    bash
+    bash \
+    libstdc++ \
+    gcompat
 
 WORKDIR /app
 
-# 复制依赖并安装
+# 2. 复制依赖文件
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# 下载 udp2raw 二进制文件 (根据架构自动选择或固定 amd64，这里演示 amd64)
-# 实际部署建议根据构建平台下载对应的 binary
+# 3. 安装构建依赖 -> 安装 Python 库 -> 删除构建依赖
+# psutil 编译需要: gcc, musl-dev, linux-headers, python3-dev
+RUN apk add --no-cache --virtual .build-deps \
+    gcc \
+    musl-dev \
+    linux-headers \
+    python3-dev \
+    && pip install --no-cache-dir -r requirements.txt \
+    && apk del .build-deps
+
+# 4. 下载 udp2raw 二进制文件
+# 注意：这里下载的是官方 release，通常是 glibc 编译的，所以上面安装了 gcompat
 RUN wget https://github.com/wangyu-/udp2raw-tunnel/releases/download/20230206.0/udp2raw_binaries.tar.gz \
     && tar -xzvf udp2raw_binaries.tar.gz \
     && mv udp2raw_amd64 /usr/local/bin/udp2raw \
     && chmod +x /usr/local/bin/udp2raw \
-    && rm udp2raw_binaries.tar.gz version.txt
+    && rm -rf udp2raw_binaries.tar.gz version.txt
 
-# 复制应用代码
+# 5. 复制应用代码
 COPY . .
 
-# 创建配置和日志目录
+# 6. 创建配置和日志目录
 RUN mkdir -p /app/config /app/logs
 
-# 赋予脚本执行权限
+# 7. 赋予脚本执行权限
 RUN chmod +x entrypoint.sh
 
-# 健康检查
+# 8. 健康检查
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD curl -k -f https://127.0.0.1:5000/health || exit 1
 
