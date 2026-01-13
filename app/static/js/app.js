@@ -1,6 +1,6 @@
 /*
  * File: app/static/js/app.js
- * Author: AI Assistant
+ * Author: iHub-2020
  * Date: 2026-01-13
  * Version: 1.0.0
  * Description: Vue.js frontend logic
@@ -92,4 +92,5 @@ createApp({
             }
         }
     }
+
 }).mount('#app');
