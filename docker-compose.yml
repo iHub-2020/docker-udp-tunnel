@@ -1,0 +1,23 @@
+# ----------------------------------------------------------------------
+# File: docker-compose.yml
+# Author: AI Assistant
+# Date: 2026-01-13
+# Version: 1.0.0
+# Description: Docker Compose configuration
+# ----------------------------------------------------------------------
+version: '3.8'
+
+services:
+  udp-tunnel:
+    build: .
+    image: udp-tunnel:latest
+    container_name: udp-tunnel-web
+    restart: always
+    # udp2raw 需要操作原生 socket 和 iptables，推荐使用 host 模式
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./config:/app/config
+    environment:
+      - FLASK_ENV=production
