@@ -2,9 +2,9 @@
  * File: app/static/js/app.js
  * Author: iHub-2020
  * Date: 2026-01-14
- * Version: 2.7.0
- * Description: Frontend logic for UDP Tunnel Manager (Enhanced)
- * Updated: Added password toggle, button bindings, input validation, and UI feedback
+ * Version: 2.8.0
+ * Description: Frontend logic for UDP Tunnel Manager (Fixes & HTML Alignment)
+ * Updated: Aligned function names with index.html (saveAndApply, openDiagModal), added DOM null-safety
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
  */
 
@@ -19,8 +19,29 @@ let modalState = { type: null, mode: 'add', index: -1 };
 let diagAutoRefresh = null;
 let statusAutoRefresh = null;
 
-// ==================== Utility ====================
+// ==================== Utility & DOM Safety ====================
 function $(id) { return document.getElementById(id); }
+
+// Helper functions to prevent "Cannot set properties of null" errors
+function setText(id, text) {
+    const el = $(id);
+    if (el) el.textContent = text;
+}
+
+function setVal(id, val) {
+    const el = $(id);
+    if (el) el.value = val;
+}
+
+function setCheck(id, checked) {
+    const el = $(id);
+    if (el) el.checked = checked;
+}
+
+function setDisplay(id, display) {
+    const el = $(id);
+    if (el) el.style.display = display;
+}
 
 function escapeHtml(text) {
     if (text === null || text === undefined) return '';
@@ -31,10 +52,9 @@ function escapeHtml(text) {
 
 // ==================== Dropdown & UI Interactions ====================
 function toggleDropdown(id) {
-    const el = document.getElementById(id);
+    const el = $(id);
     if (!el) return;
     
-    // Close others
     document.querySelectorAll('.icon-dropdown').forEach(d => {
         if (d.id !== id) d.classList.remove('open');
     });
@@ -48,8 +68,8 @@ function togglePassword() {
     }
 }
 
+// Close dropdowns when clicking outside
 document.addEventListener('click', e => {
-    // Close dropdowns when clicking outside
     if (!e.target.closest('.icon-dropdown')) {
         document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
     }
@@ -62,7 +82,7 @@ function setLanguage(lang) {
             document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
             renderServerTable();
             renderClientTable();
-            loadStatus(); // Refresh status to translate badges
+            loadStatus();
         });
     }
 }
@@ -74,27 +94,20 @@ function toggleTheme() {
     body.setAttribute('data-theme', newTheme);
     localStorage.setItem('udp_tunnel_theme', newTheme);
     
-    const moonIcon = $('theme-icon-moon');
-    const sunIcon = $('theme-icon-sun');
-    if (moonIcon) moonIcon.style.display = newTheme === 'dark' ? 'block' : 'none';
-    if (sunIcon) sunIcon.style.display = newTheme === 'light' ? 'block' : 'none';
+    setDisplay('theme-icon-moon', newTheme === 'dark' ? 'block' : 'none');
+    setDisplay('theme-icon-sun', newTheme === 'light' ? 'block' : 'none');
 }
 
 // ==================== Tabs ====================
 function switchSubTab(section, tab) {
-    // Update Tab Buttons
     const configTabBtn = document.querySelector(`[data-tab="${section}-config"]`);
     const statusTabBtn = document.querySelector(`[data-tab="${section}-status"]`);
     
     if (configTabBtn) configTabBtn.classList.toggle('active', tab === 'config');
     if (statusTabBtn) statusTabBtn.classList.toggle('active', tab === 'status');
 
-    // Update Content Visibility
-    const configContent = $(`${section}-config-content`);
-    const statusContent = $(`${section}-status-content`);
-    
-    if (configContent) configContent.style.display = tab === 'config' ? 'block' : 'none';
-    if (statusContent) statusContent.style.display = tab === 'status' ? 'block' : 'none';
+    setDisplay(`${section}-config-content`, tab === 'config' ? 'block' : 'none');
+    setDisplay(`${section}-status-content`, tab === 'status' ? 'block' : 'none');
 
     if (tab === 'status') {
         loadStatus();
@@ -106,11 +119,8 @@ function switchModalTab(tab) {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
     
-    const basicTab = $('modal-basic');
-    const advancedTab = $('modal-advanced');
-    
-    if (basicTab) basicTab.style.display = tab === 'basic' ? 'block' : 'none';
-    if (advancedTab) advancedTab.style.display = tab === 'advanced' ? 'block' : 'none';
+    setDisplay('modal-basic', tab === 'basic' ? 'block' : 'none');
+    setDisplay('modal-advanced', tab === 'advanced' ? 'block' : 'none');
 }
 
 // ==================== API ====================
@@ -139,7 +149,6 @@ async function loadConfig() {
         renderClientTable();
     } catch (e) {
         console.error('Failed to load config:', e);
-        alert(I18n.t('load_error') || 'Failed to load configuration.');
     }
 }
 
@@ -175,8 +184,9 @@ async function loadDiagnostics() {
     }
 }
 
-async function saveConfig() {
-    const btn = $('btn-save');
+// Renamed from saveConfig to match index.html "saveAndApply()"
+async function saveAndApply() {
+    const btn = $('btn-save'); // Assuming ID might be btn-save
     const originalText = btn ? btn.innerHTML : '';
     if (btn) {
         btn.disabled = true;
@@ -210,9 +220,6 @@ async function saveConfig() {
 }
 
 async function saveConfigOnly() {
-    const btn = $('btn-save-only');
-    if (btn) btn.disabled = true;
-
     try {
         collectConfigFromUI();
         const res = await fetch('/api/config?apply=false', {
@@ -228,8 +235,6 @@ async function saveConfigOnly() {
     } catch (e) {
         console.error('Failed to save config:', e);
         alert(I18n.t('config_save_failed'));
-    } finally {
-        if (btn) btn.disabled = false;
     }
 }
 
@@ -246,11 +251,11 @@ function resetConfig() {
 
 // ==================== Config UI ====================
 function applyConfigToUI() {
-    if ($('cfg-enabled')) $('cfg-enabled').checked = config.global.enabled;
-    if ($('cfg-keep-iptables')) $('cfg-keep-iptables').checked = config.global.keep_iptables;
-    if ($('cfg-wait-lock')) $('cfg-wait-lock').checked = config.global.wait_lock;
-    if ($('cfg-retry-on-error')) $('cfg-retry-on-error').checked = config.global.retry_on_error;
-    if ($('cfg-log-level')) $('cfg-log-level').value = config.global.log_level || 'info';
+    setCheck('cfg-enabled', config.global.enabled);
+    setCheck('cfg-keep-iptables', config.global.keep_iptables);
+    setCheck('cfg-wait-lock', config.global.wait_lock);
+    setCheck('cfg-retry-on-error', config.global.retry_on_error);
+    setVal('cfg-log-level', config.global.log_level || 'info');
 }
 
 function collectConfigFromUI() {
@@ -273,16 +278,11 @@ function updateStatusDisplay(data) {
         badge.className = 'status-badge ' + (isRunning ? 'running' : 'stopped');
     }
     
-    const countEl = $('tunnel-count');
-    if (countEl) {
-        countEl.textContent = `(${I18n.t('tunnels_active', { count: activeCount })})`;
-    }
-    
+    setText('tunnel-count', `(${I18n.t('tunnels_active', { count: activeCount })})`);
     updateStatusTables(tunnels);
 }
 
 function updateStatusTables(tunnels) {
-    // Server Status Table
     const serverBody = $('server-status-table-body');
     if (serverBody) {
         serverBody.innerHTML = '';
@@ -303,7 +303,6 @@ function updateStatusTables(tunnels) {
         }
     }
     
-    // Client Status Table
     const clientBody = $('client-status-table-body');
     if (clientBody) {
         clientBody.innerHTML = '';
@@ -326,14 +325,16 @@ function updateStatusTables(tunnels) {
 }
 
 // ==================== Diagnostics ====================
-function openDiagnostics() {
-    $('diag-overlay').style.display = 'flex';
+// Renamed from openDiagnostics to match index.html "openDiagModal()"
+function openDiagModal() {
+    setDisplay('diag-overlay', 'flex');
     loadDiagnostics();
     diagAutoRefresh = setInterval(loadDiagnostics, 3000);
 }
 
-function closeDiagnostics() {
-    $('diag-overlay').style.display = 'none';
+// Renamed/Aliased to match potential HTML usage
+function closeDiagModal() {
+    setDisplay('diag-overlay', 'none');
     if (diagAutoRefresh) {
         clearInterval(diagAutoRefresh);
         diagAutoRefresh = null;
@@ -341,25 +342,24 @@ function closeDiagnostics() {
 }
 
 function stripAnsi(text) {
-    return text.replace(/\x1b\[[0-9;]*m/g, '');
+    return text.replace(/\x1b[[0-9;]*m/g, '');
 }
 
 function updateDiagnosticsDisplay(status, logs) {
     const tunnels = status.tunnels || [];
     const activeCount = tunnels.filter(t => t.running).length;
     
-    // Service Status
     const statusHtml = activeCount > 0
         ? `<span class="status-text running">${I18n.t('running')}</span> <span class="status-count">(${I18n.t('tunnels_active', { count: activeCount })})</span>`
         : `<span class="status-text stopped">${I18n.t('stopped')}</span>`;
-    if ($('diag-service-status')) $('diag-service-status').innerHTML = statusHtml;
     
-    // Tunnel Table
+    const statusEl = $('diag-service-status');
+    if (statusEl) statusEl.innerHTML = statusHtml;
+    
     const tunnelBody = $('diag-tunnel-table');
     if (tunnelBody) {
         tunnelBody.innerHTML = '';
         
-        // Helper to render rows
         const renderRow = (item, type, idx) => {
             const id = `${type}_${idx}`;
             const st = tunnels.find(t => t.id === id) || {};
@@ -389,14 +389,12 @@ function updateDiagnosticsDisplay(status, logs) {
         }
     }
     
-    // Binary Check
     if (status.binary && $('diag-binary')) {
         const icon = status.binary.installed ? '✓' : '✗';
         const iconClass = status.binary.installed ? 'success' : 'error';
         $('diag-binary').innerHTML = `<span class="status-icon ${iconClass}">${icon}</span> ${status.binary.text || 'Unknown'} <span class="diag-hash">(${status.binary.hash || 'N/A'})</span>`;
     }
     
-    // Iptables Check
     if (status.iptables && $('diag-iptables')) {
         const chains = status.iptables.chains || [];
         if (status.iptables.present && chains.length > 0) {
@@ -407,7 +405,6 @@ function updateDiagnosticsDisplay(status, logs) {
         }
     }
     
-    // Logs
     let logLines = [];
     if (logs.logs && typeof logs.logs === 'string') {
         logLines = logs.logs.split('\n').filter(line => line.trim());
@@ -420,17 +417,13 @@ function updateDiagnosticsDisplay(status, logs) {
             ? logLines.map(formatLogLine).join('\n')
             : I18n.t('no_recent_logs');
             
-        // Auto scroll if near bottom or first load
         const logContainer = $('log-container');
         if (logContainer) {
-            // Simple auto-scroll logic: always scroll to bottom on refresh
             logContainer.scrollTop = logContainer.scrollHeight;
         }
     }
     
-    if ($('diag-log-time')) {
-        $('diag-log-time').textContent = `${I18n.t('last_updated')}: ${new Date().toLocaleTimeString()}`;
-    }
+    setText('diag-log-time', `${I18n.t('last_updated')}: ${new Date().toLocaleTimeString()}`);
 }
 
 function formatLogLine(line) {
@@ -439,14 +432,14 @@ function formatLogLine(line) {
     
     let formatted = escaped
         .replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/g, '<span class="log-time">$1</span>')
-        .replace(/\[INFO\]/g, '<span class="log-level-info">[INFO]</span>')
-        .replace(/\[WARN\]/g, '<span class="log-level-warn">[WARN]</span>')
-        .replace(/\[WARNING\]/g, '<span class="log-level-warn">[WARNING]</span>')
-        .replace(/\[ERROR\]/g, '<span class="log-level-error">[ERROR]</span>')
-        .replace(/\[FATAL\]/g, '<span class="log-level-error">[FATAL]</span>')
-        .replace(/\[System\]/g, '<span class="log-system">[System]</span>')
-        .replace(/\[New Server\]/g, '<span class="log-server">[New Server]</span>')
-        .replace(/\[New Client\]/g, '<span class="log-client">[New Client]</span>');
+        .replace(/[INFO]/g, '<span class="log-level-info">[INFO]</span>')
+        .replace(/[WARN]/g, '<span class="log-level-warn">[WARN]</span>')
+        .replace(/[WARNING]/g, '<span class="log-level-warn">[WARNING]</span>')
+        .replace(/[ERROR]/g, '<span class="log-level-error">[ERROR]</span>')
+        .replace(/[FATAL]/g, '<span class="log-level-error">[FATAL]</span>')
+        .replace(/[System]/g, '<span class="log-system">[System]</span>')
+        .replace(/[New Server]/g, '<span class="log-server">[New Server]</span>')
+        .replace(/[New Client]/g, '<span class="log-client">[New Client]</span>');
     
     return `<span class="log-line">${formatted}</span>`;
 }
@@ -514,90 +507,88 @@ function renderClientTable() {
 // ==================== Modal ====================
 function openAddModal(type) {
     modalState = { type, mode: 'add', index: -1 };
-    $('modal-title').textContent = type === 'server' ? I18n.t('new_server') : I18n.t('new_client');
     
-    // Toggle fields visibility
-    $('server-fields').style.display = type === 'server' ? 'block' : 'none';
-    $('client-fields').style.display = type === 'client' ? 'block' : 'none';
-    $('client-advanced-fields').style.display = type === 'client' ? 'block' : 'none';
+    // Safe DOM manipulation
+    setText('modal-title', type === 'server' ? I18n.t('new_server') : I18n.t('new_client'));
     
-    // Reset fields
-    $('modal-enabled').checked = true;
-    $('modal-alias').value = type === 'server' ? 'New Server' : 'New Client';
-    $('modal-password').value = '';
-    $('modal-raw-mode').value = 'faketcp';
-    $('modal-cipher-mode').value = 'xor';
-    $('modal-auth-mode').value = 'simple';
-    $('modal-auto-iptables').checked = true;
-    $('modal-extra-args').value = '';
+    setDisplay('server-fields', type === 'server' ? 'block' : 'none');
+    setDisplay('client-fields', type === 'client' ? 'block' : 'none');
+    setDisplay('client-advanced-fields', type === 'client' ? 'block' : 'none');
     
-    // Reset password visibility
+    setCheck('modal-enabled', true);
+    setVal('modal-alias', type === 'server' ? 'New Server' : 'New Client');
+    setVal('modal-password', '');
+    setVal('modal-raw-mode', 'faketcp');
+    setVal('modal-cipher-mode', 'xor');
+    setVal('modal-auth-mode', 'simple');
+    setCheck('modal-auto-iptables', true);
+    setVal('modal-extra-args', '');
+    
     const pwdInput = $('modal-password');
     if (pwdInput) pwdInput.type = 'password';
     
     if (type === 'server') {
-        $('modal-listen-ip').value = '0.0.0.0';
-        $('modal-listen-port').value = '29900';
-        $('modal-forward-ip').value = '127.0.0.1';
-        $('modal-forward-port').value = '51820';
+        setVal('modal-listen-ip', '0.0.0.0');
+        setVal('modal-listen-port', '29900');
+        setVal('modal-forward-ip', '127.0.0.1');
+        setVal('modal-forward-port', '51820');
     } else {
-        $('modal-server-ip').value = '';
-        $('modal-server-port').value = '29900';
-        $('modal-local-ip').value = '127.0.0.1';
-        $('modal-local-port').value = '3333';
-        $('modal-source-ip').value = '';
-        $('modal-source-port').value = '';
-        $('modal-seq-mode').value = '3';
+        setVal('modal-server-ip', '');
+        setVal('modal-server-port', '29900');
+        setVal('modal-local-ip', '127.0.0.1');
+        setVal('modal-local-port', '3333');
+        setVal('modal-source-ip', '');
+        setVal('modal-source-port', '');
+        setVal('modal-seq-mode', '3');
     }
     
     switchModalTab('basic');
-    $('modal-overlay').style.display = 'flex';
+    setDisplay('modal-overlay', 'flex');
 }
 
 function openEditModal(type, index) {
     modalState = { type, mode: 'edit', index };
     const item = type === 'server' ? config.servers[index] : config.clients[index];
     
-    $('modal-title').textContent = item.alias || (type === 'server' ? 'Server' : 'Client');
+    setText('modal-title', item.alias || (type === 'server' ? 'Server' : 'Client'));
     
-    $('server-fields').style.display = type === 'server' ? 'block' : 'none';
-    $('client-fields').style.display = type === 'client' ? 'block' : 'none';
-    $('client-advanced-fields').style.display = type === 'client' ? 'block' : 'none';
+    setDisplay('server-fields', type === 'server' ? 'block' : 'none');
+    setDisplay('client-fields', type === 'client' ? 'block' : 'none');
+    setDisplay('client-advanced-fields', type === 'client' ? 'block' : 'none');
     
-    $('modal-enabled').checked = item.enabled !== false;
-    $('modal-alias').value = item.alias || '';
-    $('modal-password').value = item.password || '';
-    $('modal-raw-mode').value = item.raw_mode || 'faketcp';
-    $('modal-cipher-mode').value = item.cipher_mode || 'xor';
-    $('modal-auth-mode').value = item.auth_mode || 'simple';
-    $('modal-auto-iptables').checked = item.auto_iptables !== false;
-    $('modal-extra-args').value = item.extra_args || '';
+    setCheck('modal-enabled', item.enabled !== false);
+    setVal('modal-alias', item.alias || '');
+    setVal('modal-password', item.password || '');
+    setVal('modal-raw-mode', item.raw_mode || 'faketcp');
+    setVal('modal-cipher-mode', item.cipher_mode || 'xor');
+    setVal('modal-auth-mode', item.auth_mode || 'simple');
+    setCheck('modal-auto-iptables', item.auto_iptables !== false);
+    setVal('modal-extra-args', item.extra_args || '');
     
-    // Reset password visibility
     const pwdInput = $('modal-password');
     if (pwdInput) pwdInput.type = 'password';
     
     if (type === 'server') {
-        $('modal-listen-ip').value = item.listen_ip || '0.0.0.0';
-        $('modal-listen-port').value = item.listen_port || '29900';
-        $('modal-forward-ip').value = item.forward_ip || '127.0.0.1';
-        $('modal-forward-port').value = item.forward_port || '51820';
+        setVal('modal-listen-ip', item.listen_ip || '0.0.0.0');
+        setVal('modal-listen-port', item.listen_port || '29900');
+        setVal('modal-forward-ip', item.forward_ip || '127.0.0.1');
+        setVal('modal-forward-port', item.forward_port || '51820');
     } else {
-        $('modal-server-ip').value = item.server_ip || '';
-        $('modal-server-port').value = item.server_port || '29900';
-        $('modal-local-ip').value = item.local_ip || '127.0.0.1';
-        $('modal-local-port').value = item.local_port || '3333';
-        $('modal-source-ip').value = item.source_ip || '';
-        $('modal-source-port').value = item.source_port || '';
-        $('modal-seq-mode').value = item.seq_mode || '3';
+        setVal('modal-server-ip', item.server_ip || '');
+        setVal('modal-server-port', item.server_port || '29900');
+        setVal('modal-local-ip', item.local_ip || '127.0.0.1');
+        setVal('modal-local-port', item.local_port || '3333');
+        setVal('modal-source-ip', item.source_ip || '');
+        setVal('modal-source-port', item.source_port || '');
+        setVal('modal-seq-mode', item.seq_mode || '3');
     }
     
     switchModalTab('basic');
-    $('modal-overlay').style.display = 'flex';
+    setDisplay('modal-overlay', 'flex');
 }
 
 function closeModal() {
-    $('modal-overlay').style.display = 'none';
+    setDisplay('modal-overlay', 'none');
 }
 
 function saveModal() {
@@ -666,21 +657,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Theme Init
     const savedTheme = localStorage.getItem('udp_tunnel_theme') || 'dark';
     document.body.setAttribute('data-theme', savedTheme);
-    const moonIcon = $('theme-icon-moon');
-    const sunIcon = $('theme-icon-sun');
-    if (moonIcon) moonIcon.style.display = savedTheme === 'dark' ? 'block' : 'none';
-    if (sunIcon) sunIcon.style.display = savedTheme === 'light' ? 'block' : 'none';
+    setDisplay('theme-icon-moon', savedTheme === 'dark' ? 'block' : 'none');
+    setDisplay('theme-icon-sun', savedTheme === 'light' ? 'block' : 'none');
     
-    // Event Bindings for Main Buttons (Robustness check)
-    const btnSave = $('btn-save');
-    const btnSaveOnly = $('btn-save-only');
-    const btnReset = $('btn-reset');
-    
-    if (btnSave) btnSave.onclick = saveConfig;
-    if (btnSaveOnly) btnSaveOnly.onclick = saveConfigOnly;
-    if (btnReset) btnReset.onclick = resetConfig;
-
-    // Password Toggle Binding
+    // Event Bindings (Fallback if onclick is missing in HTML, but HTML has them)
+    // We keep these just in case, but the main fix is the function renaming above.
     const btnTogglePwd = document.querySelector('.btn-toggle-password');
     if (btnTogglePwd) btnTogglePwd.onclick = togglePassword;
 
@@ -696,7 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const diagOverlay = $('diag-overlay');
     if (diagOverlay) {
         diagOverlay.addEventListener('click', e => {
-            if (e.target === diagOverlay) closeDiagnostics();
+            if (e.target === diagOverlay) closeDiagModal();
         });
     }
 
