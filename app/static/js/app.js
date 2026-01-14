@@ -2,12 +2,12 @@
  * File: app/static/js/app.js
  * Author: iHub-2020
  * Date: 2026-01-14
- * Version: 2.9.0
- * Description: Frontend logic for UDP Tunnel Manager (Fixes for button bindings & ID mismatches)
- * Updated: Fixed saveOnly reference error, exposed functions globally, added robust DOM selection.
+ * Version: 2.9.5
+ * Description: Frontend logic for UDP Tunnel Manager
+ * Updated: Fixed saveModalData naming, added toggleDropdown, improved DOM selectors for tables and modals.
  */
 
-(function() { // Wrap in IIFE to avoid polluting global scope with variables, but expose functions manually
+(function() { 
 
     // ==================== State ====================
     let config = {
@@ -18,17 +18,29 @@
     let originalConfig = null;
     let modalState = { type: null, mode: 'add', index: -1 };
     let diagAutoRefresh = null;
-    let statusAutoRefresh = null;
 
-    // ==================== Utility & DOM Safety ====================
-    // Helper to find element by ID or Class (fallback)
-    function $(id) { 
-        let el = document.getElementById(id);
+    // ==================== Utility & DOM Helper ====================
+    // Robust element finder: tries ID, then Class, then Query Selector
+    function $(idOrSelector) { 
+        let el = document.getElementById(idOrSelector);
         if (!el) {
-            // Try finding by class if ID fails (fallback for some frameworks)
-            el = document.querySelector('.' + id);
+            el = document.querySelector('.' + idOrSelector);
+        }
+        if (!el && idOrSelector.includes('[')) {
+            el = document.querySelector(idOrSelector);
         }
         return el;
+    }
+
+    // Helper to find an element by multiple possible IDs
+    function findEl(ids) {
+        for (let id of ids) {
+            let el = document.getElementById(id);
+            if (el) return el;
+            el = document.querySelector('.' + id);
+            if (el) return el;
+        }
+        return null;
     }
 
     function setText(id, text) {
@@ -60,7 +72,7 @@
 
     // ==================== Global Functions (Exposed to Window) ====================
 
-    // 1. Theme
+    // 1. Top Bar Actions
     window.toggleTheme = function() {
         console.log('toggleTheme called');
         const body = document.body;
@@ -68,71 +80,87 @@
         body.setAttribute('data-theme', newTheme);
         localStorage.setItem('udp_tunnel_theme', newTheme);
         
-        setDisplay('theme-icon-moon', newTheme === 'dark' ? 'block' : 'none');
-        setDisplay('theme-icon-sun', newTheme === 'light' ? 'block' : 'none');
+        // Try to toggle icons if they exist
+        const moon = findEl(['theme-icon-moon', 'icon-moon']);
+        const sun = findEl(['theme-icon-sun', 'icon-sun']);
+        if (moon) moon.style.display = newTheme === 'dark' ? 'block' : 'none';
+        if (sun) sun.style.display = newTheme === 'light' ? 'block' : 'none';
+    };
+
+    // Fix for "toggleDropdown is not defined"
+    window.toggleDropdown = function(id) {
+        console.log(`toggleDropdown called for: ${id}`);
+        const el = $(id);
+        if (el) {
+            el.classList.toggle('show');
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        } else {
+            console.warn(`Dropdown element ${id} not found`);
+        }
     };
 
     // 2. Tabs (Config / Status)
     window.switchSubTab = function(section, tab) {
         console.log(`switchSubTab called: ${section}, ${tab}`);
         
-        // Toggle Button Active State
-        const configBtn = document.querySelector(`[onclick="switchSubTab('${section}', 'config')"]`) || $(`${section}-config-btn`);
-        const statusBtn = document.querySelector(`[onclick="switchSubTab('${section}', 'status')"]`) || $(`${section}-status-btn`);
+        // Buttons
+        const configBtn = findEl([`${section}-config-btn`, `btn-${section}-config`]) || document.querySelector(`[onclick*="switchSubTab('${section}', 'config')"]`);
+        const statusBtn = findEl([`${section}-status-btn`, `btn-${section}-status`]) || document.querySelector(`[onclick*="switchSubTab('${section}', 'status')"]`);
         
         if (configBtn && statusBtn) {
-            if (tab === 'config') {
-                configBtn.classList.add('active');
-                statusBtn.classList.remove('active');
-            } else {
-                configBtn.classList.remove('active');
-                statusBtn.classList.add('active');
-            }
+            configBtn.classList.toggle('active', tab === 'config');
+            statusBtn.classList.toggle('active', tab === 'status');
         }
 
-        // Toggle Content Visibility
-        // Try multiple ID patterns
-        const configContent = $(`${section}-config-content`) || $(`${section}-config`) || $(`${section}-settings`);
-        const statusContent = $(`${section}-status-content`) || $(`${section}-status`) || $(`${section}-state`);
+        // Content Areas
+        const configContent = findEl([`${section}-config`, `${section}-settings`, `${section}-config-content`]);
+        const statusContent = findEl([`${section}-status`, `${section}-state`, `${section}-status-content`]);
 
         if (configContent) configContent.style.display = tab === 'config' ? 'block' : 'none';
         if (statusContent) statusContent.style.display = tab === 'status' ? 'block' : 'none';
 
-        if (tab === 'status') {
-            loadStatus();
-        }
+        if (tab === 'status') loadStatus();
     };
 
     // 3. Modal Tabs (Basic / Advanced)
     window.switchModalTab = function(tab) {
         console.log(`switchModalTab called: ${tab}`);
-        const basicBtn = document.querySelector(`[onclick="switchModalTab('basic')"]`);
-        const advBtn = document.querySelector(`[onclick="switchModalTab('advanced')"]`);
+        
+        // Update Tab Buttons
+        const basicBtn = findEl(['tab-basic', 'btn-tab-basic']) || document.querySelector(`[onclick*="switchModalTab('basic')"]`);
+        const advBtn = findEl(['tab-advanced', 'btn-tab-advanced']) || document.querySelector(`[onclick*="switchModalTab('advanced')"]`);
         
         if (basicBtn) basicBtn.classList.toggle('active', tab === 'basic');
         if (advBtn) advBtn.classList.toggle('active', tab === 'advanced');
         
-        setDisplay('modal-basic', tab === 'basic' ? 'block' : 'none');
-        setDisplay('modal-advanced', tab === 'advanced' ? 'block' : 'none');
+        // Show/Hide Content
+        // Try multiple IDs for the content containers
+        const basicContent = findEl(['modal-basic', 'basic-settings', 'tab-content-basic']);
+        const advContent = findEl(['modal-advanced', 'advanced-settings', 'tab-content-advanced']);
+        
+        if (basicContent) basicContent.style.display = tab === 'basic' ? 'block' : 'none';
+        if (advContent) advContent.style.display = tab === 'advanced' ? 'block' : 'none';
     };
 
-    // 4. Diagnostics Modal
+    // 4. Diagnostics
     window.openDiagModal = function() {
         console.log('openDiagModal called');
-        const overlay = $('diag-overlay') || $('diagnostics-modal');
+        // Try to find the modal by various IDs
+        const overlay = findEl(['diag-overlay', 'diagnostics-modal', 'modal-diagnostics', 'diag-modal']);
+        
         if (overlay) {
             overlay.style.display = 'flex';
             loadDiagnostics();
             if (diagAutoRefresh) clearInterval(diagAutoRefresh);
             diagAutoRefresh = setInterval(loadDiagnostics, 3000);
         } else {
-            console.error('Diagnostics overlay element not found');
+            console.error('Diagnostics overlay element not found. Checked: diag-overlay, diagnostics-modal, modal-diagnostics');
+            alert('Error: Diagnostics modal not found in DOM.');
         }
     };
 
     window.closeDiagModal = function() {
-        console.log('closeDiagModal called');
-        const overlay = $('diag-overlay') || $('diagnostics-modal');
+        const overlay = findEl(['diag-overlay', 'diagnostics-modal', 'modal-diagnostics', 'diag-modal']);
         if (overlay) overlay.style.display = 'none';
         if (diagAutoRefresh) {
             clearInterval(diagAutoRefresh);
@@ -140,24 +168,21 @@
         }
     };
 
-    window.refreshLogs = function() {
-        loadDiagnostics();
-    };
-
+    window.refreshLogs = function() { loadDiagnostics(); };
     window.scrollLogsToBottom = function() {
         const container = $('log-container');
         if (container) container.scrollTop = container.scrollHeight;
     };
 
-    // 5. Main Actions (Save, Reset)
+    // 5. Main Actions
     window.saveAndApply = async function() {
         console.log('saveAndApply called');
-        const btn = $('btn-save') || document.querySelector('.btn-primary'); // Guessing ID/Class
+        const btn = findEl(['btn-save', 'save-apply-btn']) || document.querySelector('.btn-primary');
         const originalText = btn ? btn.innerHTML : '';
         
         if (btn) {
             btn.disabled = true;
-            btn.textContent = (typeof I18n !== 'undefined' ? I18n.t('saving') : 'Saving...');
+            btn.textContent = 'Saving...';
         }
 
         try {
@@ -170,14 +195,14 @@
             
             if (res.ok) {
                 originalConfig = JSON.parse(JSON.stringify(config));
-                alert(typeof I18n !== 'undefined' ? I18n.t('config_saved') : 'Configuration saved and applied.');
+                alert('Configuration saved and applied.');
                 loadStatus();
             } else {
                 throw new Error('Save failed');
             }
         } catch (e) {
             console.error('Failed to save config:', e);
-            alert(typeof I18n !== 'undefined' ? I18n.t('config_save_failed') : 'Failed to save configuration.');
+            alert('Failed to save configuration.');
         } finally {
             if (btn) {
                 btn.disabled = false;
@@ -186,7 +211,6 @@
         }
     };
 
-    // Renamed from saveConfigOnly to match HTML "saveOnly()"
     window.saveOnly = async function() {
         console.log('saveOnly called');
         try {
@@ -196,45 +220,44 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
             });
-            
             if (res.ok) {
                 originalConfig = JSON.parse(JSON.stringify(config));
-                alert(typeof I18n !== 'undefined' ? I18n.t('config_saved_only') : 'Configuration saved (not applied).');
+                alert('Configuration saved (not applied).');
             }
         } catch (e) {
             console.error('Failed to save config:', e);
-            alert(typeof I18n !== 'undefined' ? I18n.t('config_save_failed') : 'Failed to save configuration.');
+            alert('Failed to save configuration.');
         }
     };
 
-    window.reset = function() { // Alias for resetConfig if HTML uses reset()
-        window.resetConfig();
-    };
-
+    window.reset = function() { window.resetConfig(); };
     window.resetConfig = function() {
         console.log('resetConfig called');
-        if (originalConfig) {
-            if (confirm(typeof I18n !== 'undefined' ? I18n.t('confirm_reset') : 'Discard unsaved changes?')) {
-                config = JSON.parse(JSON.stringify(originalConfig));
-                applyConfigToUI();
-                renderServerTable();
-                renderClientTable();
-            }
+        if (originalConfig && confirm('Discard unsaved changes?')) {
+            config = JSON.parse(JSON.stringify(originalConfig));
+            applyConfigToUI();
+            renderServerTable();
+            renderClientTable();
         }
     };
 
-    // 6. Instance Management (Add/Edit/Delete)
+    // 6. Instance Management
     window.openAddModal = function(type) {
         console.log(`openAddModal called: ${type}`);
         modalState = { type, mode: 'add', index: -1 };
         
-        setText('modal-title', type === 'server' ? (typeof I18n !== 'undefined' ? I18n.t('new_server') : 'New Server') : (typeof I18n !== 'undefined' ? I18n.t('new_client') : 'New Client'));
+        setText('modal-title', type === 'server' ? 'New Server' : 'New Client');
         
-        setDisplay('server-fields', type === 'server' ? 'block' : 'none');
-        setDisplay('client-fields', type === 'client' ? 'block' : 'none');
-        setDisplay('client-advanced-fields', type === 'client' ? 'block' : 'none');
+        // Toggle fields visibility
+        const serverFields = findEl(['server-fields', 'fields-server']);
+        const clientFields = findEl(['client-fields', 'fields-client']);
+        const clientAdvFields = findEl(['client-advanced-fields', 'fields-client-advanced']);
         
-        // Defaults
+        if (serverFields) serverFields.style.display = type === 'server' ? 'block' : 'none';
+        if (clientFields) clientFields.style.display = type === 'client' ? 'block' : 'none';
+        if (clientAdvFields) clientAdvFields.style.display = type === 'client' ? 'block' : 'none';
+        
+        // Reset inputs
         setCheck('modal-enabled', true);
         setVal('modal-alias', type === 'server' ? 'New Server' : 'New Client');
         setVal('modal-password', '');
@@ -260,9 +283,9 @@
         }
         
         window.switchModalTab('basic');
-        const overlay = $('modal-overlay') || $('edit-modal');
+        const overlay = findEl(['modal-overlay', 'edit-modal', 'config-modal']);
         if (overlay) overlay.style.display = 'flex';
-        else console.error('Modal overlay not found');
+        else console.error('Edit modal overlay not found');
     };
 
     window.openEditModal = function(type, index) {
@@ -270,16 +293,17 @@
         modalState = { type, mode: 'edit', index };
         const item = type === 'server' ? config.servers[index] : config.clients[index];
         
-        if (!item) {
-            console.error('Item not found for edit');
-            return;
-        }
+        if (!item) return;
 
         setText('modal-title', item.alias || (type === 'server' ? 'Server' : 'Client'));
         
-        setDisplay('server-fields', type === 'server' ? 'block' : 'none');
-        setDisplay('client-fields', type === 'client' ? 'block' : 'none');
-        setDisplay('client-advanced-fields', type === 'client' ? 'block' : 'none');
+        const serverFields = findEl(['server-fields', 'fields-server']);
+        const clientFields = findEl(['client-fields', 'fields-client']);
+        const clientAdvFields = findEl(['client-advanced-fields', 'fields-client-advanced']);
+        
+        if (serverFields) serverFields.style.display = type === 'server' ? 'block' : 'none';
+        if (clientFields) clientFields.style.display = type === 'client' ? 'block' : 'none';
+        if (clientAdvFields) clientAdvFields.style.display = type === 'client' ? 'block' : 'none';
         
         setCheck('modal-enabled', item.enabled !== false);
         setVal('modal-alias', item.alias || '');
@@ -306,31 +330,25 @@
         }
         
         window.switchModalTab('basic');
-        const overlay = $('modal-overlay') || $('edit-modal');
+        const overlay = findEl(['modal-overlay', 'edit-modal', 'config-modal']);
         if (overlay) overlay.style.display = 'flex';
-        else console.error('Modal overlay not found');
     };
 
     window.closeModal = function() {
-        const overlay = $('modal-overlay') || $('edit-modal');
+        const overlay = findEl(['modal-overlay', 'edit-modal', 'config-modal']);
         if (overlay) overlay.style.display = 'none';
     };
 
-    window.saveModal = function() {
-        console.log('saveModal called');
+    // FIX: Renamed from saveModal to saveModalData to match HTML
+    window.saveModalData = function() {
+        console.log('saveModalData called');
         const isServer = modalState.type === 'server';
         
-        // Basic Validation
+        // Validation
         if (isServer) {
-            if (!$('modal-forward-ip').value) {
-                alert('Forward IP is required');
-                return;
-            }
+            if (!$('modal-forward-ip').value) { alert('Forward IP is required'); return; }
         } else {
-            if (!$('modal-server-ip').value) {
-                alert('Server IP is required');
-                return;
-            }
+            if (!$('modal-server-ip').value) { alert('Server IP is required'); return; }
         }
 
         const item = {
@@ -372,17 +390,25 @@
 
     window.deleteInstance = function(type, index) {
         console.log(`deleteInstance called: ${type}, ${index}`);
-        if (confirm(typeof I18n !== 'undefined' ? I18n.t('confirm_delete') : 'Are you sure you want to delete this instance?')) {
-            type === 'server' ? config.servers.splice(index, 1) : config.clients.splice(index, 1);
+        if (confirm('Are you sure you want to delete this instance?')) {
+            if (type === 'server') {
+                config.servers.splice(index, 1);
+            } else {
+                config.clients.splice(index, 1);
+            }
+            // Force re-render
             renderServerTable();
             renderClientTable();
         }
     };
 
     window.togglePassword = function() {
+        console.log('togglePassword called');
         const input = $('modal-password');
         if (input) {
             input.type = input.type === 'password' ? 'text' : 'password';
+        } else {
+            console.error('Password input not found (expected id="modal-password")');
         }
     };
 
@@ -395,14 +421,7 @@
             const data = await res.json();
             
             config = {
-                global: { 
-                    enabled: false, 
-                    keep_iptables: true, 
-                    wait_lock: true, 
-                    retry_on_error: true, 
-                    log_level: 'info', 
-                    ...data.global 
-                },
+                global: { enabled: false, keep_iptables: true, wait_lock: true, retry_on_error: true, log_level: 'info', ...data.global },
                 servers: Array.isArray(data.servers) ? data.servers : [],
                 clients: Array.isArray(data.clients) ? data.clients : []
             };
@@ -469,9 +488,9 @@
         const activeCount = tunnels.filter(t => t.running).length;
         const isRunning = activeCount > 0;
         
-        const badge = $('status-badge');
+        const badge = findEl(['status-badge', 'service-status-badge']);
         if (badge) {
-            badge.textContent = isRunning ? (typeof I18n !== 'undefined' ? I18n.t('running') : 'Running') : (typeof I18n !== 'undefined' ? I18n.t('stopped') : 'Stopped');
+            badge.textContent = isRunning ? 'Running' : 'Stopped';
             badge.className = 'status-badge ' + (isRunning ? 'running' : 'stopped');
         }
         
@@ -480,7 +499,7 @@
     }
 
     function updateStatusTables(tunnels) {
-        const serverBody = $('server-status-table-body');
+        const serverBody = findEl(['server-status-table-body', 'server-status-list']);
         if (serverBody) {
             serverBody.innerHTML = '';
             config.servers.forEach((s, i) => {
@@ -495,12 +514,10 @@
                         <td>${status.pid || '-'}</td>
                     </tr>`;
             });
-            if (config.servers.length === 0) {
-                serverBody.innerHTML = `<tr class="empty-row"><td colspan="6">No server instances.</td></tr>`;
-            }
+            if (config.servers.length === 0) serverBody.innerHTML = `<tr class="empty-row"><td colspan="6">No server instances.</td></tr>`;
         }
         
-        const clientBody = $('client-status-table-body');
+        const clientBody = findEl(['client-status-table-body', 'client-status-list']);
         if (clientBody) {
             clientBody.innerHTML = '';
             config.clients.forEach((c, i) => {
@@ -515,9 +532,7 @@
                         <td>${status.pid || '-'}</td>
                     </tr>`;
             });
-            if (config.clients.length === 0) {
-                clientBody.innerHTML = `<tr class="empty-row"><td colspan="6">No client instances.</td></tr>`;
-            }
+            if (config.clients.length === 0) clientBody.innerHTML = `<tr class="empty-row"><td colspan="6">No client instances.</td></tr>`;
         }
     }
 
@@ -525,97 +540,75 @@
         const tunnels = status.tunnels || [];
         const activeCount = tunnels.filter(t => t.running).length;
         
-        const statusHtml = activeCount > 0
-            ? `<span class="status-text running">Running</span> <span class="status-count">(${activeCount} active)</span>`
-            : `<span class="status-text stopped">Stopped</span>`;
-        
         const statusEl = $('diag-service-status');
-        if (statusEl) statusEl.innerHTML = statusHtml;
+        if (statusEl) {
+            statusEl.innerHTML = activeCount > 0
+                ? `<span class="status-text running">Running</span> <span class="status-count">(${activeCount} active)</span>`
+                : `<span class="status-text stopped">Stopped</span>`;
+        }
         
         const tunnelBody = $('diag-tunnel-table');
         if (tunnelBody) {
             tunnelBody.innerHTML = '';
-            
             const renderRow = (item, type, idx) => {
                 const id = `${type}_${idx}`;
                 const st = tunnels.find(t => t.id === id) || {};
                 const statusClass = st.running ? 'running' : (item.enabled ? 'stopped' : 'disabled');
                 const statusText = st.running ? 'Running' : (item.enabled ? 'Stopped' : 'Disabled');
-                
-                let local = type === 'server' ? `${item.listen_ip || '0.0.0.0'}:${item.listen_port}` : `${item.local_ip || '127.0.0.1'}:${item.local_port}`;
-                let remote = type === 'server' ? `${item.forward_ip}:${item.forward_port}` : `${item.server_ip}:${item.server_port}`;
-                
                 return `
                     <tr>
                         <td>${escapeHtml(item.alias || (type === 'server' ? 'Server' : 'Client'))}</td>
                         <td>${type}</td>
                         <td><span class="status-text ${statusClass}">${statusText}</span></td>
-                        <td>${local}</td>
-                        <td>${remote}</td>
+                        <td>${(type === 'server' ? item.listen_ip : item.local_ip) || '0.0.0.0'}:${type === 'server' ? item.listen_port : item.local_port}</td>
+                        <td>${(type === 'server' ? item.forward_ip : item.server_ip)}:${type === 'server' ? item.forward_port : item.server_port}</td>
                         <td>${item.raw_mode || 'faketcp'} / ${item.cipher_mode || 'xor'}</td>
                         <td>${st.pid || '-'}</td>
                     </tr>`;
             };
-
             config.servers.forEach((s, i) => tunnelBody.innerHTML += renderRow(s, 'server', i));
             config.clients.forEach((c, i) => tunnelBody.innerHTML += renderRow(c, 'client', i));
         }
         
         if (status.binary && $('diag-binary')) {
-            const icon = status.binary.installed ? '✓' : '✗';
             const iconClass = status.binary.installed ? 'success' : 'error';
-            $('diag-binary').innerHTML = `<span class="status-icon ${iconClass}">${icon}</span> ${status.binary.text || 'Unknown'} <span class="diag-hash">(${status.binary.hash || 'N/A'})</span>`;
+            $('diag-binary').innerHTML = `<span class="status-icon ${iconClass}">${status.binary.installed ? '✓' : '✗'}</span> ${status.binary.text || 'Unknown'} <span class="diag-hash">(${status.binary.hash || 'N/A'})</span>`;
         }
         
         if (status.iptables && $('diag-iptables')) {
             const chains = status.iptables.chains || [];
             if (status.iptables.present && chains.length > 0) {
-                const chainCodes = chains.slice(0, 2).map(c => `<code class="diag-code">${c}</code>`).join(' ');
-                $('diag-iptables').innerHTML = `<span class="status-icon success">✓</span> ${status.iptables.text} ${chainCodes}`;
+                $('diag-iptables').innerHTML = `<span class="status-icon success">✓</span> ${status.iptables.text} <code class="diag-code">${chains.slice(0, 2).join(' ')}</code>`;
             } else {
                 $('diag-iptables').innerHTML = `<span class="status-icon error">✗</span> ${status.iptables.text || 'No active rules'}`;
             }
         }
         
         let logLines = [];
-        if (logs.logs && typeof logs.logs === 'string') {
-            logLines = logs.logs.split('\n').filter(line => line.trim());
-        } else if (logs.lines && Array.isArray(logs.lines)) {
-            logLines = logs.lines;
-        }
+        if (logs.logs && typeof logs.logs === 'string') logLines = logs.logs.split('\n').filter(l => l.trim());
+        else if (logs.lines && Array.isArray(logs.lines)) logLines = logs.lines;
         
         if ($('log-content')) {
-            $('log-content').innerHTML = logLines.length > 0
-                ? logLines.map(formatLogLine).join('\n')
-                : 'No recent logs.';
-                
+            $('log-content').innerHTML = logLines.length > 0 ? logLines.map(formatLogLine).join('\n') : 'No recent logs.';
             const logContainer = $('log-container');
-            if (logContainer) {
-                logContainer.scrollTop = logContainer.scrollHeight;
-            }
+            if (logContainer) logContainer.scrollTop = logContainer.scrollHeight;
         }
         
         setText('diag-log-time', `Last updated: ${new Date().toLocaleTimeString()}`);
     }
 
     function formatLogLine(line) {
-        const cleaned = line.replace(/\x1b[[0-9;]*m/g, '');
-        const escaped = escapeHtml(cleaned);
-        
-        let formatted = escaped
-            .replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/g, '<span class="log-time">$1</span>')
-            .replace(/[INFO]/g, '<span class="log-level-info">[INFO]</span>')
-            .replace(/[WARN]/g, '<span class="log-level-warn">[WARN]</span>')
-            .replace(/[WARNING]/g, '<span class="log-level-warn">[WARNING]</span>')
-            .replace(/[ERROR]/g, '<span class="log-level-error">[ERROR]</span>')
-            .replace(/[FATAL]/g, '<span class="log-level-error">[FATAL]</span>');
-        
-        return `<span class="log-line">${formatted}</span>`;
+        const escaped = escapeHtml(line.replace(/\x1b[[0-9;]*m/g, ''));
+        return `<span class="log-line">${escaped.replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/g, '<span class="log-time">$1</span>')}</span>`;
     }
 
     function renderServerTable() {
-        const tbody = $('server-table-body');
-        if (!tbody) return;
+        // Try multiple IDs to find the table body
+        const tbody = findEl(['server-table-body', 'server-list', 'table-servers-body']);
+        if (!tbody) {
+            console.error('Server table body not found! Checked: server-table-body, server-list');
+            return;
+        }
         
         tbody.innerHTML = '';
         if (config.servers.length === 0) {
@@ -636,11 +629,15 @@
                     </td>
                 </tr>`;
         });
+        console.log('Server table rendered');
     }
 
     function renderClientTable() {
-        const tbody = $('client-table-body');
-        if (!tbody) return;
+        const tbody = findEl(['client-table-body', 'client-list', 'table-clients-body']);
+        if (!tbody) {
+            console.error('Client table body not found! Checked: client-table-body, client-list');
+            return;
+        }
         
         tbody.innerHTML = '';
         if (config.clients.length === 0) {
@@ -661,6 +658,7 @@
                     </td>
                 </tr>`;
         });
+        console.log('Client table rendered');
     }
 
     // ==================== Init ====================
@@ -670,43 +668,26 @@
         // Theme Init
         const savedTheme = localStorage.getItem('udp_tunnel_theme') || 'dark';
         document.body.setAttribute('data-theme', savedTheme);
-        setDisplay('theme-icon-moon', savedTheme === 'dark' ? 'block' : 'none');
-        setDisplay('theme-icon-sun', savedTheme === 'light' ? 'block' : 'none');
         
         // Modal Overlay Click Listeners
-        const modalOverlay = $('modal-overlay') || $('edit-modal');
+        const modalOverlay = findEl(['modal-overlay', 'edit-modal', 'config-modal']);
         if (modalOverlay) {
             modalOverlay.addEventListener('click', e => {
                 if (e.target === modalOverlay) window.closeModal();
             });
         }
         
-        const diagOverlay = $('diag-overlay') || $('diagnostics-modal');
+        const diagOverlay = findEl(['diag-overlay', 'diagnostics-modal', 'modal-diagnostics']);
         if (diagOverlay) {
             diagOverlay.addEventListener('click', e => {
                 if (e.target === diagOverlay) window.closeDiagModal();
             });
         }
 
-        // Wait for i18n (if used) then load
-        const checkI18n = setInterval(() => {
-            // If I18n is not present, just proceed after a short delay
-            if (typeof I18n === 'undefined' || (I18n.translations && Object.keys(I18n.translations).length > 0)) {
-                clearInterval(checkI18n);
-                loadConfig();
-                loadStatus();
-                statusAutoRefresh = setInterval(loadStatus, 5000);
-            }
-        }, 100);
-        
-        // Fallback: If I18n never loads, force load after 1s
-        setTimeout(() => {
-            if (config.servers.length === 0 && config.clients.length === 0 && !originalConfig) {
-                clearInterval(checkI18n);
-                loadConfig();
-                loadStatus();
-            }
-        }, 1000);
+        // Initial Load
+        loadConfig();
+        loadStatus();
+        setInterval(loadStatus, 5000);
     });
 
 })();
