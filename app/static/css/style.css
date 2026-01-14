@@ -2,14 +2,14 @@
  * File: app/static/css/style.css
  * Author: iHub-2020
  * Date: 2026-01-14
- * Version: 2.6.2
+ * Version: 2.5.0
  * Description: Modern UI theme for UDP Tunnel Manager
- * Updated: Fixed selectors to match app.js IDs and index.html structure
+ * Updated: Based on 2.4.3, refined for i18n integration and screenshot matching
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
  */
 
 /* ============================================
-   CSS Variables (Unchanged)
+   CSS Variables
    ============================================ */
 :root {
     --bg-body: #f4f5f7;
@@ -94,10 +94,9 @@ body {
 }
 
 /* ============================================
-   Header (Renamed to .navbar)
-   Fixed: Added .header and header tag support
+   Header
    ============================================ */
-.navbar, .header, header {
+.top-header {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -107,25 +106,24 @@ body {
     position: relative;
 }
 
-.navbar-content, .header-content {
+.header-center {
     display: flex;
     align-items: baseline;
     gap: 12px;
 }
 
-.navbar-title, .header-title, h1 {
+.header-title {
     font-size: 18px;
     font-weight: 600;
     color: var(--text-primary);
-    margin: 0;
 }
 
-.navbar-subtitle, .header-subtitle {
+.header-subtitle {
     font-size: 13px;
     color: var(--text-muted);
 }
 
-.navbar-actions, .header-actions {
+.header-actions {
     position: absolute;
     right: 24px;
     top: 50%;
@@ -136,8 +134,13 @@ body {
     flex-shrink: 0;
 }
 
-/* Icon Buttons */
-.btn-icon {
+.header-actions a.icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -151,18 +154,22 @@ body {
     cursor: pointer;
     transition: all 0.15s;
     text-decoration: none;
-    padding: 0;
 }
 
-.btn-icon:hover {
+.icon-btn:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
 }
 
-/* Dropdown */
-.dropdown { 
+.icon-dropdown { 
     position: relative; 
     display: inline-flex;
+}
+
+.icon-dropdown .icon-btn { 
+    width: 34px; 
+    height: 34px;
+    padding: 0;
 }
 
 .dropdown-menu {
@@ -179,7 +186,7 @@ body {
     overflow: hidden;
 }
 
-.dropdown.open .dropdown-menu { display: block; }
+.icon-dropdown.open .dropdown-menu { display: block; }
 
 .dropdown-item {
     padding: 8px 14px;
@@ -187,8 +194,6 @@ body {
     cursor: pointer;
     transition: background 0.15s;
     color: var(--text-primary);
-    display: block;
-    text-decoration: none;
 }
 
 .dropdown-item:hover { background: var(--bg-hover); }
@@ -196,17 +201,18 @@ body {
 /* ============================================
    Container
    ============================================ */
-.container {
+.container,
+.main-content {
     max-width: 1000px;
     margin: 0 auto;
     padding: 24px 20px;
 }
 
 /* ============================================
-   Status Bar (Renamed to .status-bar)
-   Fixed: Added #status-bar ID support
+   Status Bar
    ============================================ */
-.status-bar, #status-bar {
+.status-bar-wrapper,
+.status-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -217,7 +223,8 @@ body {
     margin-bottom: 16px;
 }
 
-.status-left {
+.status-bar-left,
+.status-info {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -228,7 +235,7 @@ body {
     color: var(--text-secondary);
 }
 
-.status-badge, #status-badge {
+.status-badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 4px;
@@ -239,7 +246,8 @@ body {
 .status-badge.running { background: var(--success); color: #fff; }
 .status-badge.stopped { background: #6b7280; color: #fff; }
 
-.status-count, #tunnel-count {
+.status-count,
+.tunnel-count {
     font-size: 12px;
     color: var(--text-muted);
 }
@@ -262,9 +270,10 @@ body {
 .btn-diag:hover { opacity: 0.9; }
 
 /* ============================================
-   Alert / Warning Box
+   Warning Box
    ============================================ */
-.alert-box {
+.warning-box,
+.safety-card {
     background: var(--warning-bg);
     border: 1px solid var(--warning-border);
     border-radius: var(--radius-lg);
@@ -272,7 +281,8 @@ body {
     margin-bottom: 20px;
 }
 
-.alert-title {
+.warning-title,
+.safety-title {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -282,26 +292,30 @@ body {
     margin-bottom: 8px;
 }
 
-.alert-title svg { fill: var(--warning-text); }
+.warning-title svg,
+.safety-title svg { fill: var(--warning-text); }
 
-.alert-box ul {
+.warning-box ul,
+.safety-card ul {
     margin: 0;
     padding-left: 22px;
 }
 
-.alert-box li {
+.warning-box li,
+.safety-card li {
     font-size: 12px;
     color: var(--warning-text);
     line-height: 1.6;
 }
 
-.alert-box strong { font-weight: 700; }
+.warning-box strong,
+.safety-card strong { font-weight: 700; }
 
 /* ============================================
    Card
-   Fixed: Added .panel and .section for compatibility
    ============================================ */
-.card, .panel, .section {
+.card,
+.config-section {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -309,38 +323,45 @@ body {
     overflow: hidden;
 }
 
-.card-header, .panel-header {
+.card-header,
+.section-header {
     padding: 14px 20px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.card-title, .panel-title, h3 {
+.section-title {
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 2px;
-    color: var(--text-primary);
-    margin-top: 0;
 }
 
-.card-desc {
+.section-desc {
     font-size: 12px;
     color: var(--text-secondary);
     margin: 0;
 }
 
-.card-body, .panel-body { padding: 16px 20px; }
-.card-body.no-padding { padding: 0; }
+.traffic-flow {
+    margin-top: 2px;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.card-body,
+.section-body { padding: 16px 20px; }
+.card-body.no-padding,
+.section-body.no-padding { padding: 0; }
 
 /* ============================================
-   Settings Form (Renamed to .form-row)
-   Fixed: Added .settings-form and .form-group support
+   Settings Form
    ============================================ */
-.form-list {
+.settings-form,
+.form-grid {
     display: flex;
     flex-direction: column;
 }
 
-.form-row, .settings-form, .form-group {
+.setting-row {
     display: flex;
     align-items: center;
     min-height: 44px;
@@ -348,11 +369,9 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-.form-row:last-child, .settings-form:last-child, .form-group:last-child { 
-    border-bottom: none; 
-}
+.setting-row:last-child { border-bottom: none; }
 
-.form-label, label {
+.setting-label {
     width: 180px;
     min-width: 180px;
     font-size: 13px;
@@ -362,28 +381,28 @@ body {
     padding-right: 20px;
 }
 
-.form-input-container {
+.setting-control {
     flex: 1;
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.form-hint {
+.setting-hint {
     font-size: 12px;
     color: var(--hint-info);
 }
 
-.form-hint.success { color: var(--hint-success); }
+.setting-hint.success { color: var(--hint-success); }
 
-.checkbox, input[type="checkbox"] {
+.checkbox {
     width: 16px;
     height: 16px;
     cursor: pointer;
     accent-color: var(--accent);
 }
 
-.form-select, select {
+.form-select {
     padding: 5px 10px;
     font-size: 13px;
     color: var(--text-primary);
@@ -394,22 +413,23 @@ body {
     min-width: 140px;
 }
 
-.form-select:focus, select:focus {
+.form-select:focus {
     outline: none;
     border-color: var(--accent);
 }
 
 /* ============================================
-   Tabs (Renamed to .tab-nav)
-   Fixed: Added .tabs support
+   Sub Tabs
    ============================================ */
-.tab-nav, .tabs {
+.sub-tabs,
+.tab-bar {
     display: flex;
     background: var(--bg-table-header);
     border-bottom: 1px solid var(--border-color);
 }
 
-.tab-btn, .tab {
+.sub-tab,
+.tab-btn {
     padding: 8px 18px;
     background: none;
     border: none;
@@ -422,33 +442,35 @@ body {
     transition: all 0.15s;
 }
 
-.tab-btn:hover, .tab:hover { color: var(--text-primary); }
-.tab-btn.active, .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.sub-tab:hover,
+.tab-btn:hover { color: var(--text-primary); }
+.sub-tab.active,
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ============================================
    Tab Content
    ============================================ */
-.tab-pane {
+.tab-content {
     display: none;
 }
 
-.tab-pane.active {
+.tab-content.active {
     display: block;
 }
 
 /* ============================================
-   Table (Renamed to .table)
-   Fixed: Added generic table tag support
+   Table
    ============================================ */
-.table-responsive { overflow-x: auto; }
+.table-container,
+.table-wrapper { overflow-x: auto; }
 
-.table, table {
+.data-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
 }
 
-.table th, table th {
+.data-table th {
     background: var(--bg-table-header);
     color: var(--text-secondary);
     font-weight: 500;
@@ -458,16 +480,16 @@ body {
     white-space: nowrap;
 }
 
-.table td, table td {
+.data-table td {
     padding: 10px 14px;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
 }
 
-.table tbody tr:nth-child(odd), table tbody tr:nth-child(odd) { background: var(--bg-table-odd); }
-.table tbody tr:nth-child(even), table tbody tr:nth-child(even) { background: var(--bg-table-even); }
-.table tbody tr:hover, table tbody tr:hover { background: var(--bg-hover); }
-.table tbody tr:last-child td, table tbody tr:last-child td { border-bottom: none; }
+.data-table tbody tr:nth-child(odd) { background: var(--bg-table-odd); }
+.data-table tbody tr:nth-child(even) { background: var(--bg-table-even); }
+.data-table tbody tr:hover { background: var(--bg-hover); }
+.data-table tbody tr:last-child td { border-bottom: none; }
 
 .empty-row td {
     text-align: center;
@@ -482,7 +504,7 @@ body {
 /* ============================================
    Buttons
    ============================================ */
-.btn, button {
+.btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -496,7 +518,7 @@ body {
     transition: all 0.15s;
 }
 
-.btn:disabled, button:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .btn-secondary { background: #4b5563; color: #fff; }
@@ -525,6 +547,7 @@ body {
 
 .btn-add:hover { background: var(--bg-hover); }
 
+.bottom-actions,
 .action-bar {
     display: flex;
     gap: 10px;
@@ -533,9 +556,8 @@ body {
 
 /* ============================================
    Modal
-   Fixed: Added #modal-overlay and #diag-overlay support
    ============================================ */
-.modal-overlay, #modal-overlay, #diag-overlay {
+.modal-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
@@ -547,16 +569,11 @@ body {
     overflow-y: auto;
 }
 
-.modal-overlay.show, 
-#modal-overlay[style*="display: flex"], 
-#diag-overlay[style*="display: flex"] {
+.modal-overlay.show {
     display: flex;
 }
 
-/* Ensure the modal box inside the overlay is styled correctly */
-.modal, 
-#modal-overlay > div, 
-#diag-overlay > div {
+.modal {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     width: 90%;
@@ -567,8 +584,6 @@ body {
     display: flex;
     flex-direction: column;
     margin-bottom: 5vh;
-    /* Reset text color in case it inherits weirdly */
-    color: var(--text-primary);
 }
 
 .modal-lg { max-width: 955px; }
@@ -584,7 +599,7 @@ body {
 
 .modal-title { font-size: 15px; font-weight: 600; }
 
-.btn-close {
+.modal-close {
     background: none;
     border: none;
     color: var(--text-muted);
@@ -596,7 +611,7 @@ body {
     justify-content: center;
 }
 
-.btn-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+.modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
 
 .modal-tabs {
     display: flex;
@@ -620,7 +635,7 @@ body {
 .modal-tab:hover { color: var(--text-primary); }
 .modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-.modal-body, .diag-body {
+.modal-body {
     padding: 24px 28px;
     flex: 1;
     overflow-y: auto;
@@ -635,8 +650,8 @@ body {
     flex-shrink: 0;
 }
 
-/* Modal Form Layout (Renamed to .modal-form-row) */
-.modal-form-row {
+/* Form in Modal */
+.form-row {
     display: grid;
     grid-template-columns: 180px 1fr;
     gap: 16px 24px;
@@ -644,9 +659,9 @@ body {
     margin-bottom: 20px;
 }
 
-.modal-form-row:last-child { margin-bottom: 0; }
+.form-row:last-child { margin-bottom: 0; }
 
-.modal-form-label {
+.form-label {
     font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
@@ -654,13 +669,13 @@ body {
     text-align: right;
 }
 
-.modal-form-control-wrapper {
+.form-control-wrapper {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
-.form-control, input[type="text"], input[type="number"], input[type="password"] {
+.form-control {
     width: 100%;
     max-width: 300px;
     padding: 8px 12px;
@@ -672,17 +687,17 @@ body {
     transition: border-color 0.15s;
 }
 
-.form-control:focus, input:focus { outline: none; border-color: var(--accent); }
+.form-control:focus { outline: none; border-color: var(--accent); }
 .form-control::placeholder { color: var(--text-muted); }
 
-.form-help {
+.form-hint {
     display: block;
     font-size: 12px;
     color: var(--text-muted);
     line-height: 1.5;
 }
 
-.form-help.success { color: var(--success); }
+.form-hint.success { color: var(--success); }
 
 /* Input Group */
 .input-group {
@@ -696,7 +711,8 @@ body {
     max-width: none;
 }
 
-.btn-input-addon {
+.btn-toggle-password,
+.btn-add-arg {
     padding: 8px 12px;
     background: var(--bg-table-header);
     border: 1px solid var(--border-input);
@@ -707,17 +723,18 @@ body {
     font-size: 13px;
 }
 
-.btn-input-addon:hover {
+.btn-toggle-password:hover,
+.btn-add-arg:hover {
     background: var(--bg-hover);
     color: var(--text-primary);
 }
 
-/* Checkbox in modal form */
-.modal-form-row .checkbox {
+/* Checkbox in form row */
+.form-row .checkbox {
     margin-top: 8px;
 }
 
-.modal-form-row .modal-form-control-wrapper:has(.checkbox) {
+.form-row .form-control-wrapper:has(.checkbox) {
     flex-direction: column;
     align-items: flex-start;
     gap: 6px;
@@ -738,23 +755,23 @@ body {
 
 .diag-section:last-child { border-bottom: none; }
 
-.diag-header {
+.diag-section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 12px;
 }
 
-.diag-title {
+.diag-section-title {
     font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 10px;
 }
 
-.diag-header .diag-title { margin-bottom: 0; }
+.diag-section-header .diag-section-title { margin-bottom: 0; }
 
-.diag-timestamp, #diag-log-time {
+.diag-timestamp {
     font-size: 11px;
     color: var(--text-muted);
 }
@@ -814,17 +831,15 @@ body {
 
 /* Diagnostics Table */
 .diag-table th,
-.diag-table td,
-#diag-tunnel-table td {
+.diag-table td {
     padding: 8px 12px;
     font-size: 12px;
 }
 
 /* ============================================
    Log Container
-   Fixed: Added #log-container ID support
    ============================================ */
-.log-container, #log-container {
+.log-container {
     background: var(--bg-log);
     border-radius: var(--radius);
     max-height: 350px;
@@ -833,7 +848,7 @@ body {
     position: relative;
 }
 
-.log-content, #log-content {
+.log-content {
     margin: 0;
     padding: 12px 14px;
     font-family: "SF Mono", "Monaco", "Consolas", "Menlo", monospace;
@@ -871,33 +886,35 @@ body {
    Responsive
    ============================================ */
 @media (max-width: 768px) {
-    .navbar, .header, header { flex-direction: column; padding: 14px 16px; gap: 8px; }
-    .navbar-actions, .header-actions { position: static; transform: none; margin-top: 8px; }
-    .navbar-content, .header-content { flex-direction: column; align-items: center; gap: 2px; }
-    .container { padding: 16px 12px; }
+    .top-header { flex-direction: column; padding: 14px 16px; gap: 8px; }
+    .header-actions { position: static; transform: none; margin-top: 8px; }
+    .header-center { flex-direction: column; align-items: center; gap: 2px; }
+    .container,
+    .main-content { padding: 16px 12px; }
     
-    .status-bar, #status-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .status-bar-wrapper,
+    .status-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
     .btn-diag { width: 100%; justify-content: center; }
     
-    /* Responsive Form Rows */
-    .form-row, .settings-form, .form-group { 
+    .setting-row { 
         flex-direction: column; 
         min-height: auto; 
         padding: 12px 20px; 
         align-items: flex-start; 
         gap: 8px; 
     }
-    .form-label, label { width: 100%; text-align: left; padding-right: 0; }
+    .setting-label { width: 100%; text-align: left; padding-right: 0; }
     
-    .modal-form-row { grid-template-columns: 1fr; gap: 8px; }
-    .modal-form-label { text-align: left; padding-top: 0; }
-    .form-control, input[type="text"] { max-width: 100%; }
+    .form-row { grid-template-columns: 1fr; gap: 8px; }
+    .form-label { text-align: left; padding-top: 0; }
+    .form-control { max-width: 100%; }
     .input-group { max-width: 100%; }
     
-    .modal, #modal-overlay > div, #diag-overlay > div { width: 95%; max-height: 90vh; }
+    .modal { width: 95%; max-height: 90vh; }
     .modal-lg { max-width: 95%; }
     .modal-body { padding: 16px; }
     
+    .bottom-actions,
     .action-bar { flex-wrap: wrap; }
     
     .diag-row { flex-direction: column; align-items: flex-start; gap: 4px; }
