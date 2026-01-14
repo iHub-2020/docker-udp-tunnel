@@ -1,10 +1,10 @@
 /*
  * File: app/static/css/style.css
  * Author: iHub-2020
- * Date: 2026-01-13
- * Version: 2.4.0
+ * Date: 2026-01-14
+ * Version: 2.5.0
  * Description: Modern UI theme for UDP Tunnel Manager
- * Updated: Added diagnostics modal, unified row heights, improved status bar styling
+ * Updated: Fixed styles to match new i18n HTML structure, added missing selectors
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
  */
 
@@ -179,14 +179,16 @@ body {
     font-size: 13px;
     cursor: pointer;
     transition: background 0.15s;
+    color: var(--text-primary);
 }
 
 .dropdown-item:hover { background: var(--bg-hover); }
 
 /* ============================================
-   Container
+   Container & Main Content
    ============================================ */
-.container {
+.container,
+.main-content {
     max-width: 1000px;
     margin: 0 auto;
     padding: 24px 20px;
@@ -195,7 +197,8 @@ body {
 /* ============================================
    Status Bar (with background)
    ============================================ */
-.status-bar-wrapper {
+.status-bar-wrapper,
+.status-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -206,7 +209,8 @@ body {
     margin-bottom: 16px;
 }
 
-.status-bar-left {
+.status-bar-left,
+.status-info {
     display: flex;
     align-items: center;
     gap: 10px;
@@ -228,7 +232,8 @@ body {
 .status-badge.running { background: var(--success); color: #fff; }
 .status-badge.stopped { background: #6b7280; color: #fff; }
 
-.status-count {
+.status-count,
+.tunnel-count {
     font-size: 12px;
     color: var(--text-muted);
 }
@@ -251,9 +256,10 @@ body {
 .btn-diag:hover { opacity: 0.9; }
 
 /* ============================================
-   Warning Box
+   Warning / Safety Box
    ============================================ */
-.warning-box {
+.warning-box,
+.safety-card {
     background: var(--warning-bg);
     border: 1px solid var(--warning-border);
     border-radius: var(--radius-lg);
@@ -261,7 +267,8 @@ body {
     margin-bottom: 20px;
 }
 
-.warning-title {
+.warning-title,
+.safety-title {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -271,25 +278,30 @@ body {
     margin-bottom: 8px;
 }
 
-.warning-title svg { fill: var(--warning-text); }
+.warning-title svg,
+.safety-title svg { fill: var(--warning-text); }
 
-.warning-box ul {
+.warning-box ul,
+.safety-card ul {
     margin: 0;
     padding-left: 22px;
 }
 
-.warning-box li {
+.warning-box li,
+.safety-card li {
     font-size: 12px;
     color: var(--warning-text);
     line-height: 1.6;
 }
 
-.warning-box strong { font-weight: 700; }
+.warning-box strong,
+.safety-card strong { font-weight: 700; }
 
 /* ============================================
-   Card
+   Card & Config Section
    ============================================ */
-.card {
+.card,
+.config-section {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -297,7 +309,8 @@ body {
     overflow: hidden;
 }
 
-.card-header {
+.card-header,
+.section-header {
     padding: 14px 20px;
     border-bottom: 1px solid var(--border-color);
 }
@@ -320,13 +333,16 @@ body {
     color: var(--text-muted);
 }
 
-.card-body { padding: 16px 20px; }
-.card-body.no-padding { padding: 0; }
+.card-body,
+.section-body { padding: 16px 20px; }
+.card-body.no-padding,
+.section-body.no-padding { padding: 0; }
 
 /* ============================================
    Settings Form (Unified Row Height)
    ============================================ */
-.settings-form {
+.settings-form,
+.form-grid {
     display: flex;
     flex-direction: column;
 }
@@ -361,6 +377,7 @@ body {
 .setting-hint {
     font-size: 12px;
     color: var(--hint-info);
+    cursor: help;
 }
 
 .setting-hint.success { color: var(--hint-success); }
@@ -391,13 +408,15 @@ body {
 /* ============================================
    Sub Tabs
    ============================================ */
-.sub-tabs {
+.sub-tabs,
+.tab-bar {
     display: flex;
     background: var(--bg-table-header);
     border-bottom: 1px solid var(--border-color);
 }
 
-.sub-tab {
+.sub-tab,
+.tab-btn {
     padding: 8px 18px;
     background: none;
     border: none;
@@ -410,13 +429,16 @@ body {
     transition: all 0.15s;
 }
 
-.sub-tab:hover { color: var(--text-primary); }
-.sub-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.sub-tab:hover,
+.tab-btn:hover { color: var(--text-primary); }
+.sub-tab.active,
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ============================================
    Table
    ============================================ */
-.table-container { overflow-x: auto; }
+.table-container,
+.table-wrapper { overflow-x: auto; }
 
 .data-table {
     width: 100%;
@@ -498,7 +520,8 @@ body {
 
 .btn-add:hover { background: var(--bg-hover); }
 
-.bottom-actions {
+.bottom-actions,
+.action-bar {
     display: flex;
     gap: 10px;
     padding: 8px 0;
@@ -513,9 +536,13 @@ body {
     background: rgba(0, 0, 0, 0.6);
     display: none;
     align-items: flex-start;
-    padding-top: 15vh;  /* 从 30vh 改为 5vh */
+    padding-top: 8vh;
     justify-content: center;
     z-index: 1000;
+}
+
+.modal-overlay.show {
+    display: flex;
 }
 
 .modal {
@@ -523,8 +550,8 @@ body {
     border-radius: var(--radius-lg);
     width: 90%;
     max-width: 700px;
-    min-height: 400px;  /* 从 520px 改为 400px */
-    max-height: 90vh;   /* 从 85vh 改为 90vh */
+    min-height: 400px;
+    max-height: 85vh;
     overflow: hidden;
     box-shadow: var(--shadow-lg);
     display: flex;
@@ -553,6 +580,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 20px;
+    line-height: 1;
+    width: 28px;
+    height: 28px;
 }
 
 .modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
@@ -594,20 +625,25 @@ body {
     margin-top: auto;
 }
 
-/* Form in Modal */
+/* ============================================
+   Form in Modal
+   ============================================ */
 .form-row {
     display: grid;
-	grid-template-columns: 190px 1fr;  /* 160px → 200px */
+    grid-template-columns: 190px 1fr;
     gap: 12px;
     align-items: start;
     margin-bottom: 18px;
 }
+
+.form-row:last-child { margin-bottom: 0; }
 
 .form-label {
     font-size: 13px;
     font-weight: 500;
     color: var(--text-primary);
     padding-top: 8px;
+    text-align: right;
 }
 
 .form-control-wrapper {
@@ -664,6 +700,7 @@ body {
     color: var(--text-secondary);
     cursor: pointer;
     font-size: 13px;
+    transition: all 0.15s;
 }
 
 .btn-toggle-password:hover,
@@ -672,21 +709,40 @@ body {
     color: var(--text-primary);
 }
 
-/* Checkbox in form */
-.form-row:has(.checkbox) {
+/* Checkbox in form - using explicit selectors for better compatibility */
+.form-row.checkbox-row {
     align-items: center;
 }
 
-.form-row:has(.checkbox) .form-control-wrapper {
+.form-row.checkbox-row .form-control-wrapper {
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
 }
 
-.form-row:has(.checkbox) .form-hint {
+.form-row.checkbox-row .form-hint {
     flex-basis: 100%;
     margin-top: 2px;
+}
+
+/* Fallback for :has() support */
+@supports selector(:has(.checkbox)) {
+    .form-row:has(.checkbox) {
+        align-items: center;
+    }
+
+    .form-row:has(.checkbox) .form-control-wrapper {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-row:has(.checkbox) .form-hint {
+        flex-basis: 100%;
+        margin-top: 2px;
+    }
 }
 
 /* Switch */
@@ -780,9 +836,11 @@ body {
     gap: 6px;
 }
 
-.status-text.running { color: var(--success); font-weight: 500; }
+.status-text { font-weight: 500; }
+.status-text.running { color: var(--success); }
 .status-text.stopped { color: var(--text-muted); }
 .status-text.disabled { color: var(--warning-text); }
+.status-text.error { color: var(--danger); }
 
 .status-icon { font-size: 12px; }
 .status-icon.success { color: var(--success); }
@@ -820,10 +878,11 @@ body {
 .log-container {
     background: var(--bg-log);
     border-radius: var(--radius);
-    max-height: 450px;   /* 从 600px 改为 350px */
-    min-height: 300px;   /* 从 300px 改为 200px */
+    max-height: 350px;
+    min-height: 200px;
     overflow: auto;
     position: relative;
+    margin: 0 20px 16px 20px;
 }
 
 .log-content {
@@ -843,6 +902,42 @@ body {
 .log-level-warn { color: #f59e0b; }
 .log-level-error { color: #ef4444; }
 
+/* Log Syntax Highlighting */
+.log-system { color: #60a5fa; font-weight: 500; }
+.log-server { color: #34d399; font-weight: 500; }
+.log-client { color: #a78bfa; font-weight: 500; }
+
+/* ============================================
+   Tab Content Visibility
+   ============================================ */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* ============================================
+   Hidden Fields (Server/Client specific)
+   ============================================ */
+#server-fields,
+#client-fields,
+#server-advanced-fields,
+#client-advanced-fields,
+#client-source-fields,
+#modal-basic,
+#modal-advanced {
+    /* Controlled by JS */
+}
+
+/* ============================================
+   Tooltip Styles
+   ============================================ */
+[title] {
+    cursor: help;
+}
+
 /* ============================================
    Responsive
    ============================================ */
@@ -850,28 +945,40 @@ body {
     .top-header { flex-direction: column; padding: 14px 16px; gap: 8px; }
     .header-actions { position: static; transform: none; margin-top: 8px; }
     .header-center { flex-direction: column; align-items: center; gap: 2px; }
-    .container { padding: 16px 12px; }
+    .container,
+    .main-content { padding: 16px 12px; }
     
-    .status-bar-wrapper { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .status-bar-wrapper,
+    .status-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
     .btn-diag { width: 100%; justify-content: center; }
     
     .setting-row { flex-direction: column; height: auto; padding: 10px 0; align-items: flex-start; gap: 6px; }
     .setting-label { width: 100%; text-align: left; padding-right: 0; }
     
-    .form-row { flex-direction: column; align-items: flex-start; gap: 6px; }
-    .form-label { width: 100%; }
+    .form-row { grid-template-columns: 1fr; gap: 6px; }
+    .form-label { text-align: left; padding-top: 0; }
+    .form-control,
+    .form-select,
+    .input-group { max-width: 100%; }
     
     .modal { width: 95%; max-height: 90vh; }
     .modal-lg { max-width: 95%; }
+    .modal-body { padding: 16px; }
     
-    .bottom-actions { flex-wrap: wrap; }
+    .bottom-actions,
+    .action-bar { flex-wrap: wrap; }
     
     .diag-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+    
+    .log-container { margin: 0 12px 12px 12px; }
 }
 
-/* ============================================
-   Log Syntax Highlighting (add to end of file)
-   ============================================ */
-.log-system { color: #60a5fa; font-weight: 500; }
-.log-server { color: #34d399; font-weight: 500; }
-.log-client { color: #a78bfa; font-weight: 500; }
+@media (max-width: 480px) {
+    .header-title { font-size: 16px; }
+    .header-subtitle { font-size: 12px; }
+    
+    .data-table th,
+    .data-table td { padding: 8px 10px; font-size: 12px; }
+    
+    .btn { padding: 6px 12px; font-size: 12px; }
+}
