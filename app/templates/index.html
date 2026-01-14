@@ -1,471 +1,709 @@
-<!--
- * File: app/templates/index.html
- * Author: iHub-2020
- * Date: 2026-01-14
- * Version: 2.7.0
- * Description: Main HTML template for UDP Tunnel Manager Web UI
- * Updated: Implemented i18n with data-i18n attributes
- * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
- -->
 <!DOCTYPE html>
-<html lang="en">
+<!--
+  File: app/templates/index.html
+  Author: iHub-2020
+  Date: 2026-01-14
+  Version: 2.7.1
+  Description: UDP Tunnel Manager - Web UI for udp2raw
+  Updated: Fixed layout to match screenshots, improved modal and table structure
+  GitHub: https://github.com/iHub-2020/docker-udp-tunnel
+-->
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UDP Tunnel Manager</title>
     <link rel="stylesheet" href="/static/css/style.css">
-    <script src="/static/js/i18n.js"></script>
 </head>
 <body data-theme="dark">
-    <!-- Header -->
-    <header class="top-header">
-        <div class="header-center">
-            <h1 class="header-title" data-i18n="app_title">UDP Tunnel Manager</h1>
-            <span class="header-subtitle" data-i18n="app_subtitle">A web UI based on udp2raw</span>
-        </div>
-        <div class="header-actions">
-            <!-- Language Dropdown -->
-            <div class="icon-dropdown" id="lang-dropdown">
-                <a href="https://github.com/iHub-2020/docker-udp-tunnel" target="_blank" class="icon-btn" title="View on GitHub">
-                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-                    </svg>
-                </a>
-                <button class="icon-btn" onclick="toggleDropdown('lang-dropdown')">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                    </svg>
-                    <span class="dropdown-arrow">▾</span>
-                </button>
-                <div class="dropdown-menu">
-                    <div class="dropdown-item" onclick="setLanguage('zh')">中文</div>
-                    <div class="dropdown-item" onclick="setLanguage('en')">English</div>
-                </div>
-            </div>
-            <!-- Theme Toggle -->
-            <button class="icon-btn" onclick="toggleTheme()">
-                <svg id="theme-icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+
+<!-- Header -->
+<header class="top-header">
+    <div class="header-center">
+        <h1 class="header-title">UDP Tunnel Manager</h1>
+        <span class="header-subtitle">A web UI based on udp2raw</span>
+    </div>
+    <div class="header-actions">
+        <div class="icon-dropdown" id="langDropdown">
+            <button class="icon-btn" onclick="toggleDropdown('langDropdown')" title="Language">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M4 5h7M9 3v2m0 0c0 3.5-1.5 6-4 8m2-4c1.5 2 4 4 7 4"/>
+                    <path d="M12 20l4-9 4 9m-7-3h6"/>
                 </svg>
-                <svg id="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="opacity:0.6">
+                    <path d="M7 10l5 5 5-5z"/>
                 </svg>
             </button>
+            <div class="dropdown-menu">
+                <div class="dropdown-item" onclick="setLanguage('zh')">中文</div>
+                <div class="dropdown-item" onclick="setLanguage('en')">English</div>
+            </div>
         </div>
-    </header>
+        <a href="https://github.com/iHub-2020/docker-udp-tunnel" target="_blank" class="icon-btn" title="GitHub">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+        </a>
+        <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M12 2v20M12 2a10 10 0 0 1 0 20"/>
+            </svg>
+        </button>
+    </div>
+</header>
 
-    <main class="main-content">
-        <!-- Status Bar -->
-        <div class="status-bar">
-            <div class="status-info">
-                <span data-i18n="service_status">Service Status</span>:
-                <span id="status-badge" class="status-badge stopped" data-i18n="stopped">Stopped</span>
-                <span id="tunnel-count" class="tunnel-count">(0)</span>
-            </div>
-            <button class="btn btn-outline btn-sm" id="btn-diagnostics" onclick="openDiagnostics()">
-                <span data-i18n="diagnostics">Diagnostics</span>
-            </button>
+<!-- Main Content -->
+<main class="container">
+    <!-- Status Bar -->
+    <div class="status-bar">
+        <div class="status-info">
+            <span class="status-label">服务状态:</span>
+            <span class="status-badge stopped" id="serviceStatus">已停止</span>
+            <span class="tunnel-count" id="tunnelCount">(0 个隧道运行中)</span>
         </div>
+        <button class="btn-diag" onclick="openDiagModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            诊断页面
+        </button>
+    </div>
 
-        <!-- Safety Information -->
-        <div class="safety-card">
-            <h3 data-i18n="safety_title">Critical Safety Information</h3>
-            <ul>
-                <li data-i18n-html="safety_faketcp">FakeTCP mode <strong>REQUIRES</strong> iptables rules to block kernel TCP RST packets.</li>
-                <li data-i18n-html="safety_openwrt">On OpenWrt, iptables rules may be <strong>cleared</strong> when network settings change.</li>
-                <li data-i18n-html="safety_recommend">The "Keep Iptables Rules" option is <strong>STRONGLY</strong> recommended for OpenWrt.</li>
-                <li data-i18n-html="safety_server">Server Mode: You <strong>MUST</strong> specify "Forward To" address (usually 127.0.0.1).</li>
-            </ul>
+    <!-- Warning Box -->
+    <div class="warning-box">
+        <div class="warning-title">
+            <svg width="16" height="16" viewBox="0 0 24 24">
+                <path d="M12 2L1 21h22L12 2zm0 3.5L19.5 19h-15L12 5.5zM11 10v4h2v-4h-2zm0 6v2h2v-2h-2z"/>
+            </svg>
+            Critical Safety Information
         </div>
+        <ul>
+            <li>FakeTCP mode <strong>REQUIRES</strong> iptables rules to block kernel TCP RST packets.</li>
+            <li>On OpenWrt, iptables rules may be <strong>cleared</strong> when network settings change.</li>
+            <li>The "Keep Iptables Rules" option is <strong>STRONGLY</strong> recommended for OpenWrt.</li>
+            <li>Server Mode: You <strong>MUST</strong> specify "Forward To" address (usually 127.0.0.1).</li>
+        </ul>
+    </div>
 
-        <!-- Global Settings -->
-        <section class="config-section">
-            <h2 data-i18n="global_settings">Global Settings</h2>
-            <p class="section-desc" data-i18n="global_settings_desc">Global settings for udp2raw daemon.</p>
-            
-            <div class="form-grid">
-                <div class="form-row">
-                    <label class="form-label">
-                        <input type="checkbox" class="checkbox" id="cfg-enabled">
-                        <span data-i18n="enable_service">Enable Service</span>
-                    </label>
-                    <span class="hint" data-i18n-title="enable_service_hint">ⓘ</span>
-                </div>
-                <div class="form-row">
-                    <label class="form-label">
-                        <input type="checkbox" class="checkbox" id="cfg-keep-iptables" checked>
-                        <span data-i18n="keep_iptables">Keep Iptables Rules</span>
-                    </label>
-                    <span class="hint recommended">✓</span>
-                </div>
-                <div class="form-row">
-                    <label class="form-label">
-                        <input type="checkbox" class="checkbox" id="cfg-wait-lock" checked>
-                        <span data-i18n="wait_iptables">Wait for Iptables Lock</span>
-                    </label>
-                    <span class="hint" data-i18n-title="wait_iptables_hint">ⓘ</span>
-                </div>
-                <div class="form-row">
-                    <label class="form-label">
-                        <input type="checkbox" class="checkbox" id="cfg-retry-on-error" checked>
-                        <span data-i18n="retry_on_error">Retry on Error</span>
-                    </label>
-                    <span class="hint" data-i18n-title="retry_on_error_hint">ⓘ</span>
-                </div>
-                <div class="form-row">
-                    <label class="form-label" data-i18n="log_level">Log Level</label>
-                    <select id="cfg-log-level" class="form-select">
-                        <option value="info" data-i18n="log_info">Info (Default)</option>
-                        <option value="fatal" data-i18n="log_fatal">Fatal</option>
-                        <option value="error" data-i18n="log_error">Error</option>
-                        <option value="warning" data-i18n="log_warning">Warning</option>
-                        <option value="debug" data-i18n="log_debug">Debug</option>
-                        <option value="trace" data-i18n="log_trace">Trace</option>
-                    </select>
-                </div>
-            </div>
-        </section>
-
-        <!-- Server Instances -->
-        <section class="config-section">
-            <h2 data-i18n="server_instances">Server Instances (-s)</h2>
-            <p class="section-desc" data-i18n="server_desc">Server Mode: OpenWrt listens for connections from remote clients.</p>
-            <p class="traffic-flow" data-i18n="server_traffic_flow">Traffic Flow: Internet → WAN Port → [Decrypted] → Forward To IP:Port.</p>
-            
-            <div class="sub-tabs">
-                <button class="sub-tab active" data-tab="server-config" onclick="switchSubTab('server','config')" data-i18n="config">Config</button>
-                <button class="sub-tab" data-tab="server-status" onclick="switchSubTab('server','status')" data-i18n="status">Status</button>
-            </div>
-            
-            <div id="server-config-content">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="name">Name</th>
-                            <th data-i18n="enable">Enable</th>
-                            <th data-i18n="wan_listen_port">WAN Listen Port</th>
-                            <th data-i18n="forward_to_ip">Forward To IP</th>
-                            <th data-i18n="forward_to_port">Forward To Port</th>
-                            <th data-i18n="actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="server-table-body">
-                        <tr class="empty-row"><td colspan="6" data-i18n="no_server_instances">No server instances configured.</td></tr>
-                    </tbody>
-                </table>
-                <button class="btn btn-primary" onclick="openAddModal('server')" data-i18n="add_server">+ Add Server</button>
-            </div>
-            
-            <div id="server-status-content" style="display:none">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="name">Name</th>
-                            <th data-i18n="status">Status</th>
-                            <th data-i18n="local">Local</th>
-                            <th data-i18n="forward">Forward</th>
-                            <th data-i18n="protocol">Protocol</th>
-                            <th data-i18n="pid">PID</th>
-                        </tr>
-                    </thead>
-                    <tbody id="server-status-table-body">
-                        <tr class="empty-row"><td colspan="6" data-i18n="no_server_instances">No server instances.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Client Instances -->
-        <section class="config-section">
-            <h2 data-i18n="client_instances">Client Instances (-c)</h2>
-            <p class="section-desc" data-i18n="client_desc">Client Mode: OpenWrt connects to remote udp2raw server (VPS).</p>
-            <p class="traffic-flow" data-i18n="client_traffic_flow">Traffic Flow: App → Local Port → [Encrypted] → Forward To VPS IP:Port.</p>
-            
-            <div class="sub-tabs">
-                <button class="sub-tab active" data-tab="client-config" onclick="switchSubTab('client','config')" data-i18n="config">Config</button>
-                <button class="sub-tab" data-tab="client-status" onclick="switchSubTab('client','status')" data-i18n="status">Status</button>
-            </div>
-            
-            <div id="client-config-content">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="name">Name</th>
-                            <th data-i18n="enable">Enable</th>
-                            <th data-i18n="vps_address">VPS Address</th>
-                            <th data-i18n="vps_port">VPS Port</th>
-                            <th data-i18n="local_listen_port">Local Listen Port</th>
-                            <th data-i18n="actions">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="client-table-body">
-                        <tr class="empty-row"><td colspan="6" data-i18n="no_client_instances">No client instances configured.</td></tr>
-                    </tbody>
-                </table>
-                <button class="btn btn-primary" onclick="openAddModal('client')" data-i18n="add_client">+ Add Client</button>
-            </div>
-            
-            <div id="client-status-content" style="display:none">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th data-i18n="name">Name</th>
-                            <th data-i18n="status">Status</th>
-                            <th data-i18n="local">Local</th>
-                            <th data-i18n="remote">Remote</th>
-                            <th data-i18n="protocol">Protocol</th>
-                            <th data-i18n="pid">PID</th>
-                        </tr>
-                    </thead>
-                    <tbody id="client-status-table-body">
-                        <tr class="empty-row"><td colspan="6" data-i18n="no_client_instances">No client instances.</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <button class="btn btn-primary" onclick="saveConfig()" data-i18n="save_apply">Save & Apply</button>
-            <button class="btn btn-outline" onclick="saveConfigOnly()" data-i18n="save_only">Save Only</button>
-            <button class="btn btn-outline" onclick="resetConfig()" data-i18n="reset">Reset</button>
+    <!-- Global Settings -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="section-title">常规设置</h2>
+            <p class="section-desc">udp2raw 守护进程的全局设置。</p>
         </div>
-    </main>
-
-    <!-- Modal: Tunnel Configuration -->
-    <div class="modal-overlay" id="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modal-title" data-i18n="tunnel_config">UDP Tunnel Configuration</h3>
-            </div>
-            <div class="modal-tabs">
-                <button class="modal-tab active" data-tab="basic" onclick="switchModalTab('basic')" data-i18n="basic_settings">Basic Settings</button>
-                <button class="modal-tab" data-tab="advanced" onclick="switchModalTab('advanced')" data-i18n="advanced_settings">Advanced Settings</button>
-            </div>
-            <div class="modal-body">
-                <!-- Basic Settings -->
-                <div id="modal-basic">
-                    <div class="form-group">
-                        <label class="form-label">
-                            <input type="checkbox" class="checkbox" id="modal-enabled" checked>
-                            <span data-i18n="enable">Enable</span>
-                        </label>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" data-i18n="alias">Alias</label>
-                        <input type="text" class="form-input" id="modal-alias">
-                    </div>
-                    
-                    <!-- Server Fields -->
-                    <div id="server-fields">
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="wan_listen_port">WAN Listen Port</label>
-                            <input type="number" class="form-input" id="modal-listen-port" value="29900">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="forward_to_ip">Forward To IP</label>
-                            <input type="text" class="form-input" id="modal-forward-ip" value="127.0.0.1">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="forward_to_port">Forward To Port</label>
-                            <input type="number" class="form-input" id="modal-forward-port" value="51820">
-                        </div>
-                    </div>
-                    
-                    <!-- Client Fields -->
-                    <div id="client-fields" style="display:none">
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="vps_address">VPS Address</label>
-                            <input type="text" class="form-input" id="modal-server-ip">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="vps_port">VPS Port</label>
-                            <input type="number" class="form-input" id="modal-server-port" value="29900">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="local_listen_port">Local Listen Port</label>
-                            <input type="number" class="form-input" id="modal-local-port" value="3333">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-i18n="password">Password (-k)</label>
-                        <input type="password" class="form-input" id="modal-password" placeholder="*">
-                        <span class="hint" data-i18n-title="password_hint">ⓘ</span>
+        <div class="card-body no-padding">
+            <div class="settings-form">
+                <div class="setting-row">
+                    <label class="setting-label">Enable Service</label>
+                    <div class="setting-control">
+                        <input type="checkbox" class="checkbox" id="enableService" checked>
+                        <span class="setting-hint">ⓘ Master switch. If disabled, no tunnels will run.</span>
                     </div>
                 </div>
-                
-                <!-- Advanced Settings -->
-                <div id="modal-advanced" style="display:none">
-                    <!-- Server Advanced -->
-                    <div id="server-fields-advanced">
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="wan_listen_address">WAN Listen Address (-l)</label>
-                            <input type="text" class="form-input" id="modal-listen-ip" value="0.0.0.0">
-                            <span class="hint" data-i18n-title="wan_listen_address_hint">ⓘ</span>
-                        </div>
-                    </div>
-                    
-                    <!-- Client Advanced -->
-                    <div id="client-advanced-fields" style="display:none">
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="local_listen_address">Local Listen Address (-l)</label>
-                            <input type="text" class="form-input" id="modal-local-ip" value="127.0.0.1">
-                            <span class="hint" data-i18n-title="local_listen_address_hint">ⓘ</span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-i18n="raw_mode">Raw Mode</label>
-                        <select id="modal-raw-mode" class="form-select">
-                            <option value="faketcp" data-i18n="faketcp">FakeTCP (Recommended)</option>
-                            <option value="udp" data-i18n="udp">UDP</option>
-                            <option value="icmp" data-i18n="icmp">ICMP</option>
-                        </select>
-                        <span class="hint" data-i18n-title="raw_mode_hint">ⓘ</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-i18n="cipher_mode">Cipher Mode</label>
-                        <select id="modal-cipher-mode" class="form-select">
-                            <option value="xor" data-i18n="xor_fast">XOR (Fast)</option>
-                            <option value="aes128cbc" data-i18n="aes128cbc">AES-128-CBC</option>
-                            <option value="none" data-i18n="cipher_none">None</option>
-                        </select>
-                        <span class="hint" data-i18n-title="cipher_mode_hint">ⓘ</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-i18n="auth_mode">Auth Mode</label>
-                        <select id="modal-auth-mode" class="form-select">
-                            <option value="simple" data-i18n="simple_basic">Simple (Basic)</option>
-                            <option value="md5" data-i18n="md5">MD5</option>
-                            <option value="crc32" data-i18n="crc32">CRC32</option>
-                            <option value="hmac_sha1" data-i18n="hmac_sha1">HMAC-SHA1</option>
-                        </select>
-                        <span class="hint" data-i18n-title="auth_mode_hint">ⓘ</span>
-                    </div>
-                    
-                    <!-- Client-only fields -->
-                    <div id="client-advanced-fields-extra" style="display:none">
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="source_ip">Source IP (--source-ip)</label>
-                            <input type="text" class="form-input" id="modal-source-ip">
-                            <span class="hint" data-i18n-title="source_ip_hint">ⓘ</span>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label" data-i18n="source_port">Source Port (--source-port)</label>
-                            <input type="text" class="form-input" id="modal-source-port">
-                            <span class="hint" data-i18n-title="source_port_hint">ⓘ</span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label">
-                            <input type="checkbox" class="checkbox" id="modal-auto-iptables" checked>
-                            <span data-i18n="auto_iptables">Auto Add Iptables Rule (-a)</span>
-                        </label>
-                        <span class="hint" data-i18n-title="auto_iptables_hint">ⓘ</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-i18n="seq_mode">Sequence Mode</label>
-                        <select id="modal-seq-mode" class="form-select">
-                            <option value="0" data-i18n="seq_mode_0">0 - Disabled</option>
-                            <option value="1" data-i18n="seq_mode_1">1 - Simple</option>
-                            <option value="2" data-i18n="seq_mode_2">2 - Basic</option>
-                            <option value="3" selected data-i18n="seq_mode_3">3 - Simulate real TCP (Recommended)</option>
-                            <option value="4" data-i18n="seq_mode_4">4 - Full simulation</option>
-                        </select>
-                        <span class="hint" data-i18n-title="seq_mode_hint">ⓘ</span>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" data-i18n="extra_args">Extra Arguments</label>
-                        <input type="text" class="form-input" id="modal-extra-args" placeholder="+">
-                        <span class="hint" data-i18n-title="extra_args_hint">ⓘ</span>
+                <div class="setting-row">
+                    <label class="setting-label">Keep Iptables Rules</label>
+                    <div class="setting-control">
+                        <input type="checkbox" class="checkbox" id="keepIptables" checked>
+                        <span class="setting-hint success">✓ Auto-restore iptables rules if cleared by system. Recommended.</span>
                     </div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal()" data-i18n="close">Close</button>
-                <button class="btn btn-primary" onclick="saveModal()" data-i18n="save">Save</button>
+                <div class="setting-row">
+                    <label class="setting-label">Wait for Iptables Lock</label>
+                    <div class="setting-control">
+                        <input type="checkbox" class="checkbox" id="waitIptables" checked>
+                        <span class="setting-hint">ⓘ Wait for xtables lock while invoking iptables. Prevents failures during boot.</span>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <label class="setting-label">Retry on Error</label>
+                    <div class="setting-control">
+                        <input type="checkbox" class="checkbox" id="retryOnError" checked>
+                        <span class="setting-hint">ⓘ Allow starting even if network is not ready. Recommended for auto-start.</span>
+                    </div>
+                </div>
+                <div class="setting-row">
+                    <label class="setting-label">日志等级</label>
+                    <div class="setting-control">
+                        <select class="form-select" id="logLevel">
+                            <option value="info" selected>Info (Default)</option>
+                            <option value="fatal">Fatal</option>
+                            <option value="error">Error</option>
+                            <option value="warning">Warning</option>
+                            <option value="debug">Debug</option>
+                            <option value="trace">Trace</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal: Diagnostics -->
-    <div class="modal-overlay" id="diag-overlay">
-        <div class="modal modal-lg">
-            <div class="modal-header">
-                <h3 data-i18n="tunnel_status">UDP Tunnel Status</h3>
-                <button class="modal-close" onclick="closeDiagnostics()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="diag-section">
-                    <div class="diag-row">
-                        <span class="diag-label" data-i18n="service_status">Service Status</span>:
-                        <span id="diag-service-status"><span class="status-text stopped" data-i18n="stopped">Stopped</span></span>
-                    </div>
-                </div>
-                
-                <div class="diag-section">
-                    <h4 data-i18n="tunnel_status">Tunnel Status</h4>
+    <!-- Server Instances -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="section-title">服务端实例 (-s)</h2>
+            <p class="section-desc">服务端模式: OpenWrt 监听来自远程客户端的连接。</p>
+            <p class="section-desc traffic-flow">Traffic Flow: Internet → WAN Port → [Decrypted] → Forward To IP:Port.</p>
+        </div>
+        <div class="sub-tabs">
+            <button class="sub-tab active" data-tab="server-config">配置</button>
+            <button class="sub-tab" data-tab="server-status">状态</button>
+        </div>
+        <div class="card-body no-padding">
+            <!-- Config Tab -->
+            <div class="tab-content active" id="server-config">
+                <div class="table-container">
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th data-i18n="name">Name</th>
-                                <th data-i18n="mode">Mode</th>
-                                <th data-i18n="status">Status</th>
-                                <th data-i18n="local">Local</th>
-                                <th data-i18n="remote">Remote</th>
-                                <th data-i18n="protocol">Protocol</th>
-                                <th data-i18n="pid">PID</th>
+                                <th>名称</th>
+                                <th>启用</th>
+                                <th>WAN 监听端口</th>
+                                <th>转发目标 IP</th>
+                                <th>转发目标端口</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
-                        <tbody id="diag-tunnel-table">
-                            <tr class="empty-row"><td colspan="7" data-i18n="loading">Loading...</td></tr>
+                        <tbody id="serverTableBody">
+                            <tr>
+                                <td>New Server</td>
+                                <td><input type="checkbox" class="checkbox" checked></td>
+                                <td>29900</td>
+                                <td>127.0.0.1</td>
+                                <td>51820</td>
+                                <td>
+                                    <button class="btn btn-outline btn-sm" onclick="editServer(0)">编辑</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteServer(0)">删除</button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
-                
-                <div class="diag-section">
-                    <h4 data-i18n="system_diagnostics">System Diagnostics</h4>
-                    <div class="diag-row">
-                        <span class="diag-label" data-i18n="core_binary">Core Binary</span>:
-                        <span id="diag-binary">⏳ <span data-i18n="checking">Checking...</span></span>
-                    </div>
-                    <div class="diag-row">
-                        <span class="diag-label" data-i18n="iptables_rules">Iptables Rules</span>:
-                        <span id="diag-iptables">⏳ <span data-i18n="checking">Checking...</span></span>
-                    </div>
+                <div class="table-footer">
+                    <button class="btn-add" onclick="addServer()">添加服务端</button>
                 </div>
-                
-                <div class="diag-section">
-                    <h4 data-i18n="recent_logs">Recent Logs</h4>
-                    <p class="log-time" id="diag-log-time"><span data-i18n="last_updated">Last updated</span>: --</p>
-                    <div class="log-container" id="log-container">
-                        <pre id="log-content" data-i18n="loading_logs">Loading logs...</pre>
-                    </div>
-                    <div class="log-actions">
-                        <button class="btn btn-outline btn-sm" onclick="refreshLogs()" data-i18n="refresh_logs">Refresh Logs</button>
-                        <button class="btn btn-outline btn-sm" onclick="scrollLogsToBottom()" data-i18n="scroll_bottom">Scroll to Bottom</button>
-                    </div>
+            </div>
+            <!-- Status Tab -->
+            <div class="tab-content" id="server-status">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Local</th>
+                                <th>Forward</th>
+                                <th>Protocol</th>
+                                <th>PID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="serverStatusBody">
+                            <tr class="empty-row">
+                                <td colspan="6">No server instances.</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="/static/js/app.js"></script>
+    <!-- Client Instances -->
+    <div class="card">
+        <div class="card-header">
+            <h2 class="section-title">客户端实例 (-c)</h2>
+            <p class="section-desc">客户端模式: OpenWrt 连接到远程 udp2raw 服务器 (VPS)。</p>
+            <p class="section-desc traffic-flow">Traffic Flow: App → Local Port → [Encrypted] → Forward To VPS IP:Port.</p>
+        </div>
+        <div class="sub-tabs">
+            <button class="sub-tab active" data-tab="client-config">配置</button>
+            <button class="sub-tab" data-tab="client-status">状态</button>
+        </div>
+        <div class="card-body no-padding">
+            <!-- Config Tab -->
+            <div class="tab-content active" id="client-config">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Enable</th>
+                                <th>VPS 地址</th>
+                                <th>VPS 端口</th>
+                                <th>本地监听端口</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientTableBody">
+                            <tr>
+                                <td>New Client</td>
+                                <td><input type="checkbox" class="checkbox" checked></td>
+                                <td></td>
+                                <td>29900</td>
+                                <td>3333</td>
+                                <td>
+                                    <button class="btn btn-outline btn-sm" onclick="editClient(0)">编辑</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteClient(0)">删除</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="table-footer">
+                    <button class="btn-add" onclick="addClient()">添加客户端</button>
+                </div>
+            </div>
+            <!-- Status Tab -->
+            <div class="tab-content" id="client-status">
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Local</th>
+                                <th>Remote</th>
+                                <th>Protocol</th>
+                                <th>PID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientStatusBody">
+                            <tr class="empty-row">
+                                <td colspan="6">No client instances.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="bottom-actions">
+        <button class="btn btn-primary" onclick="saveAndApply()">保存并应用</button>
+        <button class="btn btn-secondary" onclick="saveOnly()">仅保存</button>
+        <button class="btn btn-outline" onclick="resetConfig()">重置</button>
+    </div>
+</main>
+
+<!-- Edit Server/Client Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title" id="editModalTitle">New Server</h3>
+            <button class="modal-close" onclick="closeEditModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-tabs">
+            <button class="modal-tab active" data-tab="basic">基本设置</button>
+            <button class="modal-tab" data-tab="advanced">高级设置</button>
+        </div>
+        <div class="modal-body">
+            <!-- Basic Settings Tab -->
+            <div class="tab-content active" id="tab-basic">
+                <div class="form-row">
+                    <label class="form-label">启用</label>
+                    <div class="form-control-wrapper">
+                        <input type="checkbox" class="checkbox" id="editEnable" checked>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Alias</label>
+                    <div class="form-control-wrapper">
+                        <input type="text" class="form-control" id="editAlias" value="New Server">
+                    </div>
+                </div>
+                <!-- Server-specific fields -->
+                <div class="form-row server-field">
+                    <label class="form-label">WAN Listen Port</label>
+                    <div class="form-control-wrapper">
+                        <input type="number" class="form-control" id="editWanPort" value="29900">
+                    </div>
+                </div>
+                <div class="form-row server-field">
+                    <label class="form-label">Forward To IP</label>
+                    <div class="form-control-wrapper">
+                        <input type="text" class="form-control" id="editForwardIp" value="127.0.0.1">
+                    </div>
+                </div>
+                <div class="form-row server-field">
+                    <label class="form-label">Forward To Port</label>
+                    <div class="form-control-wrapper">
+                        <input type="number" class="form-control" id="editForwardPort" value="51820">
+                    </div>
+                </div>
+                <!-- Client-specific fields -->
+                <div class="form-row client-field" style="display:none;">
+                    <label class="form-label">VPS Address</label>
+                    <div class="form-control-wrapper">
+                        <input type="text" class="form-control" id="editVpsAddress" placeholder="e.g. 10.10.10.1">
+                    </div>
+                </div>
+                <div class="form-row client-field" style="display:none;">
+                    <label class="form-label">VPS Port</label>
+                    <div class="form-control-wrapper">
+                        <input type="number" class="form-control" id="editVpsPort" value="29900">
+                    </div>
+                </div>
+                <div class="form-row client-field" style="display:none;">
+                    <label class="form-label">Local Listen Port</label>
+                    <div class="form-control-wrapper">
+                        <input type="number" class="form-control" id="editLocalPort" value="3333">
+                    </div>
+                </div>
+                <!-- Common fields -->
+                <div class="form-row">
+                    <label class="form-label">Password (-k)</label>
+                    <div class="form-control-wrapper">
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="editPassword" value="123456">
+                            <button type="button" class="btn-toggle-password" onclick="togglePassword()">*</button>
+                        </div>
+                        <span class="form-hint">ⓘ Encryption password. Must match client configuration exactly.</span>
+                    </div>
+                </div>
+                <div class="form-row server-field">
+                    <label class="form-label">WAN Listen Address (-l)</label>
+                    <div class="form-control-wrapper">
+                        <input type="text" class="form-control" id="editListenAddr" value="0.0.0.0">
+                        <span class="form-hint">ⓘ Address to listen on. Use 0.0.0.0 for all interfaces.</span>
+                    </div>
+                </div>
+                <div class="form-row client-field" style="display:none;">
+                    <label class="form-label">Local Listen Address (-l)</label>
+                    <div class="form-control-wrapper">
+                        <input type="text" class="form-control" id="editLocalAddr" value="127.0.0.1">
+                        <span class="form-hint">ⓘ Local address to listen on. Usually 127.0.0.1.</span>
+                    </div>
+                </div>
+            </div>
+            <!-- Advanced Settings Tab -->
+            <div class="tab-content" id="tab-advanced">
+                <div class="form-row">
+                    <label class="form-label">Raw Mode</label>
+                    <div class="form-control-wrapper">
+                        <select class="form-select" id="editRawMode">
+                            <option value="faketcp" selected>FakeTCP (Recommended)</option>
+                            <option value="udp">UDP</option>
+                            <option value="icmp">ICMP</option>
+                        </select>
+                        <span class="form-hint">ⓘ Transport protocol. FakeTCP is recommended for bypassing firewalls.</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Cipher Mode</label>
+                    <div class="form-control-wrapper">
+                        <select class="form-select" id="editCipherMode">
+                            <option value="xor" selected>XOR (Fast)</option>
+                            <option value="aes128cbc">AES-128-CBC</option>
+                            <option value="none">None</option>
+                        </select>
+                        <span class="form-hint">ⓘ Encryption method. XOR is fast and usually sufficient.</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Auth Mode</label>
+                    <div class="form-control-wrapper">
+                        <select class="form-select" id="editAuthMode">
+                            <option value="simple" selected>Simple (Basic)</option>
+                            <option value="md5">MD5</option>
+                            <option value="crc32">CRC32</option>
+                            <option value="hmac_sha1">HMAC-SHA1</option>
+                        </select>
+                        <span class="form-hint">ⓘ Authentication method. Simple is basic protection.</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Auto Add Iptables Rule (-a)</label>
+                    <div class="form-control-wrapper">
+                        <input type="checkbox" class="checkbox" id="editAutoIptables" checked>
+                        <span class="form-hint">ⓘ Automatically add iptables rules to block kernel TCP processing. Required for FakeTCP.</span>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label class="form-label">Extra Arguments</label>
+                    <div class="form-control-wrapper">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="editExtraArgs" placeholder="e.g. --seq-mode 4">
+                            <button type="button" class="btn-add-arg">+</button>
+                        </div>
+                        <span class="form-hint">ⓘ Additional command line arguments (e.g. --seq-mode 4).</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEditModal()">关闭</button>
+            <button class="btn btn-primary" onclick="saveInstance()">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Diagnostics Modal -->
+<div class="modal-overlay" id="diagModal">
+    <div class="modal modal-lg">
+        <div class="modal-header">
+            <h3 class="modal-title">UDP Tunnel Status</h3>
+            <button class="modal-close" onclick="closeDiagModal()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+        <div class="modal-body diag-body">
+            <!-- Tunnel Status Table -->
+            <div class="diag-section">
+                <div class="table-container">
+                    <table class="data-table diag-table">
+                        <thead>
+                            <tr>
+                                <th>名称</th>
+                                <th>模式</th>
+                                <th>状态</th>
+                                <th>本地</th>
+                                <th>远程</th>
+                                <th>协议</th>
+                                <th>PID</th>
+                            </tr>
+                        </thead>
+                        <tbody id="diagTunnelBody">
+                            <tr>
+                                <td>New Server</td>
+                                <td>服务端</td>
+                                <td><span class="status-text running">运行中</span></td>
+                                <td>0.0.0.0:29900</td>
+                                <td>127.0.0.1:51820</td>
+                                <td>faketcp / xor</td>
+                                <td>11</td>
+                            </tr>
+                            <tr>
+                                <td>New Client</td>
+                                <td>客户端</td>
+                                <td><span class="status-text running">运行中</span></td>
+                                <td>127.0.0.1:3333</td>
+                                <td>10.10.10.1:29900</td>
+                                <td>faketcp / xor</td>
+                                <td>13</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- System Diagnostics -->
+            <div class="diag-section">
+                <h4 class="diag-section-title">System Diagnostics</h4>
+                <div class="diag-grid">
+                    <div class="diag-row">
+                        <span class="diag-label">Core Binary:</span>
+                        <span class="diag-value">
+                            <span class="status-icon success">✓</span>
+                            <span>Verified</span>
+                            <span class="diag-hash">(b454317fe1)</span>
+                        </span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="diag-label">Iptables Rules:</span>
+                        <span class="diag-value">
+                            <span class="status-icon success">✓</span>
+                            <span>Active:</span>
+                            <span class="diag-code">udp2rawOwrW_b3af82d7_C0</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Logs -->
+            <div class="diag-section">
+                <div class="diag-section-header">
+                    <h4 class="diag-section-title">Recent Logs</h4>
+                    <span class="diag-timestamp">Last updated: <span id="logTimestamp">2:07:09 AM</span></span>
+                </div>
+                <div class="log-container">
+                    <pre class="log-content" id="logContent"><span class="log-line"><span class="log-time">[2026-01-13 18:04:20]</span> <span class="log-server">[New Server]</span> Started with PID: 11</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:04:26]</span> <span class="log-client">[New Client]</span> Starting: /usr/local/bin/udp2raw -c -l 127.0.0.1:3333 -r 10.10.10.1:29900 -k 123456 --raw-mode faket</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:04:26]</span> <span class="log-server">[New Server]</span> <span class="log-time">[2026-01-13 18:04:26]</span><span class="log-level-warn">[WARN]</span>you can run udp2raw with non-root account for better security. check READ</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:04:26]</span> <span class="log-client">[New Client]</span> Started with PID: 13</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:04:26]</span> <span class="log-client">[New Client]</span> <span class="log-time">[2026-01-13 18:04:26]</span><span class="log-level-warn">[WARN]</span>you can run udp2raw with non-root account for better security. check READ</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:04:26]</span> <span class="log-server">[New Server]</span> <span class="log-time">[2026-01-13 18:04:26]</span><span class="log-level-warn">[WARN]</span>auto added iptables rules</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:04:26]</span> <span class="log-client">[New Client]</span> <span class="log-time">[2026-01-13 18:04:26]</span><span class="log-level-warn">[WARN]</span>auto added iptables rules</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-system">[System]</span> Process Manager initialized</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-system">[System]</span> Applying configuration...</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-server">[New Server]</span> Starting: /usr/local/bin/udp2raw -s -l 0.0.0.0:29900 -r 127.0.0.1:51820 -k 123456 --raw-mode faketcp</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-server">[New Server]</span> Started with PID: 11</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-client">[New Client]</span> Starting: /usr/local/bin/udp2raw -c -l 127.0.0.1:3333 -r 10.10.10.1:29900 -k 123456 --raw-mode faket</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-server">[New Server]</span> <span class="log-time">[2026-01-13 18:05:24]</span><span class="log-level-warn">[WARN]</span>you can run udp2raw with non-root account for better security. check READ</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-client">[New Client]</span> Started with PID: 13</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-client">[New Client]</span> <span class="log-time">[2026-01-13 18:05:24]</span><span class="log-level-warn">[WARN]</span>you can run udp2raw with non-root account for better security. check READ</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-server">[New Server]</span> <span class="log-time">[2026-01-13 18:05:24]</span><span class="log-level-warn">[WARN]</span>auto added iptables rules</span>
+<span class="log-line"><span class="log-time">[2026-01-13 18:05:24]</span> <span class="log-client">[New Client]</span> <span class="log-time">[2026-01-13 18:05:24]</span><span class="log-level-warn">[WARN]</span>auto added iptables rules</span></pre>
+                </div>
+                <div class="log-actions">
+                    <button class="btn btn-outline btn-sm" onclick="refreshLogs()">Refresh Logs</button>
+                    <button class="btn btn-outline btn-sm" onclick="scrollToBottom()">Scroll to Bottom</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Dropdown toggle
+function toggleDropdown(id) {
+    const dropdown = document.getElementById(id);
+    dropdown.classList.toggle('open');
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdowns = document.querySelectorAll('.icon-dropdown');
+    dropdowns.forEach(function(dropdown) {
+        if (!dropdown.contains(e.target)) {
+            dropdown.classList.remove('open');
+        }
+    });
+});
+
+// Theme toggle
+function toggleTheme() {
+    const body = document.body;
+    const currentTheme = body.getAttribute('data-theme');
+    body.setAttribute('data-theme', currentTheme === 'dark' ? 'light' : 'dark');
+}
+
+// Language
+function setLanguage(lang) {
+    console.log('Set language:', lang);
+    document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
+}
+
+// Sub tabs
+document.querySelectorAll('.sub-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const parent = this.closest('.card');
+        parent.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
+        parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        const tabId = this.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+    });
+});
+
+// Modal tabs
+document.querySelectorAll('.modal-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        const modal = this.closest('.modal');
+        modal.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+        modal.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        const tabId = 'tab-' + this.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+    });
+});
+
+// Edit Modal
+let editMode = 'server';
+let editIndex = -1;
+
+function openEditModal(mode, index) {
+    editMode = mode;
+    editIndex = index;
+    document.getElementById('editModal').classList.add('show');
+    document.getElementById('editModalTitle', mode === 'server' ? 'New Server' : 'New Client');
+    
+    // Show/hide fields based on mode
+    document.querySelectorAll('.server-field').forEach(el => {
+        el.style.display = mode === 'server' ? '' : 'none';
+    });
+    document.querySelectorAll('.client-field').forEach(el => {
+        el.style.display = mode === 'client' ? '' : 'none';
+    });
+}
+
+function closeEditModal() {
+    document.getElementById('editModal').classList.remove('show');
+}
+
+function editServer(index) {
+    openEditModal('server', index);
+}
+
+function editClient(index) {
+    openEditModal('client', index);
+}
+
+function addServer() {
+    openEditModal('server', -1);
+}
+
+function addClient() {
+    openEditModal('client', -1);
+}
+
+function saveInstance() {
+    closeEditModal();
+}
+
+function deleteServer(index) {
+    if (confirm('确定要删除此服务端实例吗？')) {
+        console.log('Delete server:', index);
+    }
+}
+
+function deleteClient(index) {
+    if (confirm('确定要删除此客户端实例吗？')) {
+        console.log('Delete client:', index);
+    }
+}
+
+// Toggle password visibility
+function togglePassword() {
+    const input = document.getElementById('editPassword');
+    input.type = input.type === 'password' ? 'text' : 'password';
+}
+
+// Diagnostics Modal
+function openDiagModal() {
+    document.getElementById('diagModal').classList.add('show');
+}
+
+function closeDiagModal() {
+    document.getElementById('diagModal').classList.remove('show');
+}
+
+function refreshLogs() {
+    console.log('Refresh logs');
+}
+
+function scrollToBottom() {
+    const logContainer = document.querySelector('.log-container');
+    logContainer.scrollTop = logContainer.scrollHeight;
+}
+
+// Save actions
+function saveAndApply() {
+    console.log('Save and apply');
+}
+
+function saveOnly() {
+    console.log('Save only');
+}
+
+function resetConfig() {
+    if (confirm('确定要重置配置吗？')) {
+        console.log('Reset config');
+    }
+}
+</script>
+
 </body>
 </html>
