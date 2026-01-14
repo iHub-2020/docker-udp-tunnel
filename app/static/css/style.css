@@ -162,8 +162,15 @@ body {
     color: var(--text-primary);
 }
 
-.icon-dropdown { position: relative; }
-.icon-dropdown .icon-btn { width: auto; padding: 0 8px; }
+.icon-dropdown { 
+    position: relative; 
+    display: inline-flex;  /* 添加这个 */
+}
+.icon-dropdown .icon-btn { 
+    width: 34px; 
+    padding: 0;
+    background: transparent;
+}
 .dropdown-arrow { margin-left: 2px; opacity: 0.6; }
 
 .dropdown-menu {
@@ -926,4 +933,5 @@ body {
 .log-system { color: #60a5fa; font-weight: 500; }
 .log-server { color: #34d399; font-weight: 500; }
 .log-client { color: #a78bfa; font-weight: 500; }
+
 
