@@ -2,9 +2,9 @@
  * File: app/static/js/app.js
  * Author: iHub-2020
  * Date: 2026-01-14
- * Version: 2.6.0
- * Description: Frontend logic for UDP Tunnel Manager
- * Updated: Integrated with i18n.js module, removed duplicate i18n code
+ * Version: 2.7.0
+ * Description: Frontend logic for UDP Tunnel Manager (Enhanced)
+ * Updated: Added password toggle, button bindings, input validation, and UI feedback
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
  */
 
@@ -17,26 +17,39 @@ let config = {
 let originalConfig = null;
 let modalState = { type: null, mode: 'add', index: -1 };
 let diagAutoRefresh = null;
+let statusAutoRefresh = null;
 
 // ==================== Utility ====================
 function $(id) { return document.getElementById(id); }
 
 function escapeHtml(text) {
+    if (text === null || text === undefined) return '';
     const div = document.createElement('div');
-    div.textContent = text || '';
+    div.textContent = text;
     return div.innerHTML;
 }
 
-// ==================== Dropdown ====================
+// ==================== Dropdown & UI Interactions ====================
 function toggleDropdown(id) {
     const el = document.getElementById(id);
+    if (!el) return;
+    
+    // Close others
     document.querySelectorAll('.icon-dropdown').forEach(d => {
         if (d.id !== id) d.classList.remove('open');
     });
     el.classList.toggle('open');
 }
 
+function togglePassword() {
+    const input = $('modal-password');
+    if (input) {
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+}
+
 document.addEventListener('click', e => {
+    // Close dropdowns when clicking outside
     if (!e.target.closest('.icon-dropdown')) {
         document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
     }
@@ -44,12 +57,14 @@ document.addEventListener('click', e => {
 
 // ==================== Language ====================
 function setLanguage(lang) {
-    I18n.setLanguage(lang).then(() => {
-        document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
-        renderServerTable();
-        renderClientTable();
-        loadStatus();
-    });
+    if (typeof I18n !== 'undefined') {
+        I18n.setLanguage(lang).then(() => {
+            document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
+            renderServerTable();
+            renderClientTable();
+            loadStatus(); // Refresh status to translate badges
+        });
+    }
 }
 
 // ==================== Theme ====================
@@ -58,27 +73,30 @@ function toggleTheme() {
     const newTheme = body.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     body.setAttribute('data-theme', newTheme);
     localStorage.setItem('udp_tunnel_theme', newTheme);
-    $('theme-icon-moon').style.display = newTheme === 'dark' ? 'block' : 'none';
-    $('theme-icon-sun').style.display = newTheme === 'light' ? 'block' : 'none';
+    
+    const moonIcon = $('theme-icon-moon');
+    const sunIcon = $('theme-icon-sun');
+    if (moonIcon) moonIcon.style.display = newTheme === 'dark' ? 'block' : 'none';
+    if (sunIcon) sunIcon.style.display = newTheme === 'light' ? 'block' : 'none';
 }
 
-// ==================== Sub Tabs ====================
+// ==================== Tabs ====================
 function switchSubTab(section, tab) {
-    const configTab = document.querySelector(`[data-tab="${section}-config"]`);
-    const statusTab = document.querySelector(`[data-tab="${section}-status"]`);
+    // Update Tab Buttons
+    const configTabBtn = document.querySelector(`[data-tab="${section}-config"]`);
+    const statusTabBtn = document.querySelector(`[data-tab="${section}-status"]`);
+    
+    if (configTabBtn) configTabBtn.classList.toggle('active', tab === 'config');
+    if (statusTabBtn) statusTabBtn.classList.toggle('active', tab === 'status');
+
+    // Update Content Visibility
     const configContent = $(`${section}-config-content`);
     const statusContent = $(`${section}-status-content`);
     
-    if (tab === 'config') {
-        configTab.classList.add('active');
-        statusTab.classList.remove('active');
-        configContent.style.display = 'block';
-        statusContent.style.display = 'none';
-    } else {
-        configTab.classList.remove('active');
-        statusTab.classList.add('active');
-        configContent.style.display = 'none';
-        statusContent.style.display = 'block';
+    if (configContent) configContent.style.display = tab === 'config' ? 'block' : 'none';
+    if (statusContent) statusContent.style.display = tab === 'status' ? 'block' : 'none';
+
+    if (tab === 'status') {
         loadStatus();
     }
 }
@@ -87,32 +105,48 @@ function switchModalTab(tab) {
     document.querySelectorAll('.modal-tab').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tab);
     });
-    $('modal-basic').style.display = tab === 'basic' ? 'block' : 'none';
-    $('modal-advanced').style.display = tab === 'advanced' ? 'block' : 'none';
+    
+    const basicTab = $('modal-basic');
+    const advancedTab = $('modal-advanced');
+    
+    if (basicTab) basicTab.style.display = tab === 'basic' ? 'block' : 'none';
+    if (advancedTab) advancedTab.style.display = tab === 'advanced' ? 'block' : 'none';
 }
 
 // ==================== API ====================
 async function loadConfig() {
     try {
         const res = await fetch('/api/config');
+        if (!res.ok) throw new Error('Network response was not ok');
         const data = await res.json();
+        
         config = {
-            global: { enabled: false, keep_iptables: true, wait_lock: true, retry_on_error: true, log_level: 'info', ...data.global },
-            servers: data.servers || [],
-            clients: data.clients || []
+            global: { 
+                enabled: false, 
+                keep_iptables: true, 
+                wait_lock: true, 
+                retry_on_error: true, 
+                log_level: 'info', 
+                ...data.global 
+            },
+            servers: Array.isArray(data.servers) ? data.servers : [],
+            clients: Array.isArray(data.clients) ? data.clients : []
         };
+        
         originalConfig = JSON.parse(JSON.stringify(config));
         applyConfigToUI();
         renderServerTable();
         renderClientTable();
     } catch (e) {
         console.error('Failed to load config:', e);
+        alert(I18n.t('load_error') || 'Failed to load configuration.');
     }
 }
 
 async function loadStatus() {
     try {
         const res = await fetch('/api/status');
+        if (!res.ok) return;
         const data = await res.json();
         updateStatusDisplay(data);
     } catch (e) {
@@ -124,14 +158,17 @@ async function loadDiagnostics() {
     try {
         const [statusRes, logsRes, diagRes] = await Promise.all([
             fetch('/api/status'),
-            fetch('/api/logs?lines=50'),
+            fetch('/api/logs?lines=100'),
             fetch('/api/diagnostics')
         ]);
+        
         const status = await statusRes.json();
         const logs = await logsRes.json();
         const diag = await diagRes.json();
+        
         status.binary = diag.binary;
         status.iptables = diag.iptables;
+        
         updateDiagnosticsDisplay(status, logs);
     } catch (e) {
         console.error('Failed to load diagnostics:', e);
@@ -139,6 +176,13 @@ async function loadDiagnostics() {
 }
 
 async function saveConfig() {
+    const btn = $('btn-save');
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = I18n.t('saving') || 'Saving...';
+    }
+
     try {
         collectConfigFromUI();
         const res = await fetch('/api/config', {
@@ -146,18 +190,29 @@ async function saveConfig() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(config)
         });
+        
         if (res.ok) {
             originalConfig = JSON.parse(JSON.stringify(config));
             alert(I18n.t('config_saved'));
             loadStatus();
+        } else {
+            throw new Error('Save failed');
         }
     } catch (e) {
         console.error('Failed to save config:', e);
         alert(I18n.t('config_save_failed'));
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     }
 }
 
 async function saveConfigOnly() {
+    const btn = $('btn-save-only');
+    if (btn) btn.disabled = true;
+
     try {
         collectConfigFromUI();
         const res = await fetch('/api/config?apply=false', {
@@ -165,39 +220,45 @@ async function saveConfigOnly() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(config)
         });
+        
         if (res.ok) {
             originalConfig = JSON.parse(JSON.stringify(config));
             alert(I18n.t('config_saved_only'));
         }
     } catch (e) {
         console.error('Failed to save config:', e);
+        alert(I18n.t('config_save_failed'));
+    } finally {
+        if (btn) btn.disabled = false;
     }
 }
 
 function resetConfig() {
     if (originalConfig) {
-        config = JSON.parse(JSON.stringify(originalConfig));
-        applyConfigToUI();
-        renderServerTable();
-        renderClientTable();
+        if (confirm(I18n.t('confirm_reset') || 'Discard unsaved changes?')) {
+            config = JSON.parse(JSON.stringify(originalConfig));
+            applyConfigToUI();
+            renderServerTable();
+            renderClientTable();
+        }
     }
 }
 
 // ==================== Config UI ====================
 function applyConfigToUI() {
-    $('cfg-enabled').checked = config.global.enabled;
-    $('cfg-keep-iptables').checked = config.global.keep_iptables;
-    $('cfg-wait-lock').checked = config.global.wait_lock;
-    $('cfg-retry-on-error').checked = config.global.retry_on_error;
-    $('cfg-log-level').value = config.global.log_level || 'info';
+    if ($('cfg-enabled')) $('cfg-enabled').checked = config.global.enabled;
+    if ($('cfg-keep-iptables')) $('cfg-keep-iptables').checked = config.global.keep_iptables;
+    if ($('cfg-wait-lock')) $('cfg-wait-lock').checked = config.global.wait_lock;
+    if ($('cfg-retry-on-error')) $('cfg-retry-on-error').checked = config.global.retry_on_error;
+    if ($('cfg-log-level')) $('cfg-log-level').value = config.global.log_level || 'info';
 }
 
 function collectConfigFromUI() {
-    config.global.enabled = $('cfg-enabled').checked;
-    config.global.keep_iptables = $('cfg-keep-iptables').checked;
-    config.global.wait_lock = $('cfg-wait-lock').checked;
-    config.global.retry_on_error = $('cfg-retry-on-error').checked;
-    config.global.log_level = $('cfg-log-level').value;
+    if ($('cfg-enabled')) config.global.enabled = $('cfg-enabled').checked;
+    if ($('cfg-keep-iptables')) config.global.keep_iptables = $('cfg-keep-iptables').checked;
+    if ($('cfg-wait-lock')) config.global.wait_lock = $('cfg-wait-lock').checked;
+    if ($('cfg-retry-on-error')) config.global.retry_on_error = $('cfg-retry-on-error').checked;
+    if ($('cfg-log-level')) config.global.log_level = $('cfg-log-level').value;
 }
 
 // ==================== Status Display ====================
@@ -206,48 +267,61 @@ function updateStatusDisplay(data) {
     const activeCount = tunnels.filter(t => t.running).length;
     const isRunning = activeCount > 0;
     
-    $('status-badge').textContent = isRunning ? I18n.t('running') : I18n.t('stopped');
-    $('status-badge').className = 'status-badge ' + (isRunning ? 'running' : 'stopped');
-    $('tunnel-count').textContent = `(${I18n.t('tunnels_active', { count: activeCount })})`;
+    const badge = $('status-badge');
+    if (badge) {
+        badge.textContent = isRunning ? I18n.t('running') : I18n.t('stopped');
+        badge.className = 'status-badge ' + (isRunning ? 'running' : 'stopped');
+    }
+    
+    const countEl = $('tunnel-count');
+    if (countEl) {
+        countEl.textContent = `(${I18n.t('tunnels_active', { count: activeCount })})`;
+    }
     
     updateStatusTables(tunnels);
 }
 
 function updateStatusTables(tunnels) {
+    // Server Status Table
     const serverBody = $('server-status-table-body');
-    serverBody.innerHTML = '';
-    config.servers.forEach((s, i) => {
-        const status = tunnels.find(t => t.id === `server_${i}`) || {};
-        serverBody.innerHTML += `
-            <tr>
-                <td>${escapeHtml(s.alias || 'Server ' + i)}</td>
-                <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? I18n.t('running') : I18n.t('stopped')}</span></td>
-                <td>${s.listen_ip || '0.0.0.0'}:${s.listen_port}</td>
-                <td>${s.forward_ip}:${s.forward_port}</td>
-                <td>${s.raw_mode || 'faketcp'}</td>
-                <td>${status.pid || '-'}</td>
-            </tr>`;
-    });
-    if (config.servers.length === 0) {
-        serverBody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_server_instances')}</td></tr>`;
+    if (serverBody) {
+        serverBody.innerHTML = '';
+        config.servers.forEach((s, i) => {
+            const status = tunnels.find(t => t.id === `server_${i}`) || {};
+            serverBody.innerHTML += `
+                <tr>
+                    <td>${escapeHtml(s.alias || 'Server ' + i)}</td>
+                    <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? I18n.t('running') : I18n.t('stopped')}</span></td>
+                    <td>${s.listen_ip || '0.0.0.0'}:${s.listen_port}</td>
+                    <td>${s.forward_ip}:${s.forward_port}</td>
+                    <td>${s.raw_mode || 'faketcp'}</td>
+                    <td>${status.pid || '-'}</td>
+                </tr>`;
+        });
+        if (config.servers.length === 0) {
+            serverBody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_server_instances')}</td></tr>`;
+        }
     }
     
+    // Client Status Table
     const clientBody = $('client-status-table-body');
-    clientBody.innerHTML = '';
-    config.clients.forEach((c, i) => {
-        const status = tunnels.find(t => t.id === `client_${i}`) || {};
-        clientBody.innerHTML += `
-            <tr>
-                <td>${escapeHtml(c.alias || 'Client ' + i)}</td>
-                <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? I18n.t('running') : I18n.t('stopped')}</span></td>
-                <td>${c.local_ip || '127.0.0.1'}:${c.local_port}</td>
-                <td>${c.server_ip}:${c.server_port}</td>
-                <td>${c.raw_mode || 'faketcp'}</td>
-                <td>${status.pid || '-'}</td>
-            </tr>`;
-    });
-    if (config.clients.length === 0) {
-        clientBody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_client_instances')}</td></tr>`;
+    if (clientBody) {
+        clientBody.innerHTML = '';
+        config.clients.forEach((c, i) => {
+            const status = tunnels.find(t => t.id === `client_${i}`) || {};
+            clientBody.innerHTML += `
+                <tr>
+                    <td>${escapeHtml(c.alias || 'Client ' + i)}</td>
+                    <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? I18n.t('running') : I18n.t('stopped')}</span></td>
+                    <td>${c.local_ip || '127.0.0.1'}:${c.local_port}</td>
+                    <td>${c.server_ip}:${c.server_port}</td>
+                    <td>${c.raw_mode || 'faketcp'}</td>
+                    <td>${status.pid || '-'}</td>
+                </tr>`;
+        });
+        if (config.clients.length === 0) {
+            clientBody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_client_instances')}</td></tr>`;
+        }
     }
 }
 
@@ -274,57 +348,56 @@ function updateDiagnosticsDisplay(status, logs) {
     const tunnels = status.tunnels || [];
     const activeCount = tunnels.filter(t => t.running).length;
     
+    // Service Status
     const statusHtml = activeCount > 0
         ? `<span class="status-text running">${I18n.t('running')}</span> <span class="status-count">(${I18n.t('tunnels_active', { count: activeCount })})</span>`
         : `<span class="status-text stopped">${I18n.t('stopped')}</span>`;
-    $('diag-service-status').innerHTML = statusHtml;
+    if ($('diag-service-status')) $('diag-service-status').innerHTML = statusHtml;
     
+    // Tunnel Table
     const tunnelBody = $('diag-tunnel-table');
-    tunnelBody.innerHTML = '';
-    
-    config.servers.forEach((s, i) => {
-        const st = tunnels.find(t => t.id === `server_${i}`) || {};
-        const statusClass = st.running ? 'running' : (s.enabled ? 'stopped' : 'disabled');
-        const statusText = st.running ? I18n.t('running') : (s.enabled ? I18n.t('stopped') : I18n.t('disabled'));
-        tunnelBody.innerHTML += `
-            <tr>
-                <td>${escapeHtml(s.alias || 'Server')}</td>
-                <td>${I18n.t('server')}</td>
-                <td><span class="status-text ${statusClass}">${statusText}</span></td>
-                <td>${s.listen_ip || '0.0.0.0'}:${s.listen_port}</td>
-                <td>${s.forward_ip}:${s.forward_port}</td>
-                <td>${s.raw_mode || 'faketcp'} / ${s.cipher_mode || 'xor'}</td>
-                <td>${st.pid || '-'}</td>
-            </tr>`;
-    });
-    
-    config.clients.forEach((c, i) => {
-        const st = tunnels.find(t => t.id === `client_${i}`) || {};
-        const statusClass = st.running ? 'running' : (c.enabled ? 'stopped' : 'disabled');
-        const statusText = st.running ? I18n.t('running') : (c.enabled ? I18n.t('stopped') : I18n.t('disabled'));
-        tunnelBody.innerHTML += `
-            <tr>
-                <td>${escapeHtml(c.alias || 'Client')}</td>
-                <td>${I18n.t('client')}</td>
-                <td><span class="status-text ${statusClass}">${statusText}</span></td>
-                <td>${c.local_ip || '127.0.0.1'}:${c.local_port}</td>
-                <td>${c.server_ip}:${c.server_port}</td>
-                <td>${c.raw_mode || 'faketcp'} / ${c.cipher_mode || 'xor'}</td>
-                <td>${st.pid || '-'}</td>
-            </tr>`;
-    });
-    
-    if (config.servers.length === 0 && config.clients.length === 0) {
-        tunnelBody.innerHTML = `<tr class="empty-row"><td colspan="7">${I18n.t('no_instances')}</td></tr>`;
+    if (tunnelBody) {
+        tunnelBody.innerHTML = '';
+        
+        // Helper to render rows
+        const renderRow = (item, type, idx) => {
+            const id = `${type}_${idx}`;
+            const st = tunnels.find(t => t.id === id) || {};
+            const statusClass = st.running ? 'running' : (item.enabled ? 'stopped' : 'disabled');
+            const statusText = st.running ? I18n.t('running') : (item.enabled ? I18n.t('stopped') : I18n.t('disabled'));
+            
+            let local = type === 'server' ? `${item.listen_ip || '0.0.0.0'}:${item.listen_port}` : `${item.local_ip || '127.0.0.1'}:${item.local_port}`;
+            let remote = type === 'server' ? `${item.forward_ip}:${item.forward_port}` : `${item.server_ip}:${item.server_port}`;
+            
+            return `
+                <tr>
+                    <td>${escapeHtml(item.alias || (type === 'server' ? 'Server' : 'Client'))}</td>
+                    <td>${I18n.t(type)}</td>
+                    <td><span class="status-text ${statusClass}">${statusText}</span></td>
+                    <td>${local}</td>
+                    <td>${remote}</td>
+                    <td>${item.raw_mode || 'faketcp'} / ${item.cipher_mode || 'xor'}</td>
+                    <td>${st.pid || '-'}</td>
+                </tr>`;
+        };
+
+        config.servers.forEach((s, i) => tunnelBody.innerHTML += renderRow(s, 'server', i));
+        config.clients.forEach((c, i) => tunnelBody.innerHTML += renderRow(c, 'client', i));
+        
+        if (config.servers.length === 0 && config.clients.length === 0) {
+            tunnelBody.innerHTML = `<tr class="empty-row"><td colspan="7">${I18n.t('no_instances')}</td></tr>`;
+        }
     }
     
-    if (status.binary) {
+    // Binary Check
+    if (status.binary && $('diag-binary')) {
         const icon = status.binary.installed ? '✓' : '✗';
         const iconClass = status.binary.installed ? 'success' : 'error';
         $('diag-binary').innerHTML = `<span class="status-icon ${iconClass}">${icon}</span> ${status.binary.text || 'Unknown'} <span class="diag-hash">(${status.binary.hash || 'N/A'})</span>`;
     }
     
-    if (status.iptables) {
+    // Iptables Check
+    if (status.iptables && $('diag-iptables')) {
         const chains = status.iptables.chains || [];
         if (status.iptables.present && chains.length > 0) {
             const chainCodes = chains.slice(0, 2).map(c => `<code class="diag-code">${c}</code>`).join(' ');
@@ -334,6 +407,7 @@ function updateDiagnosticsDisplay(status, logs) {
         }
     }
     
+    // Logs
     let logLines = [];
     if (logs.logs && typeof logs.logs === 'string') {
         logLines = logs.logs.split('\n').filter(line => line.trim());
@@ -341,16 +415,22 @@ function updateDiagnosticsDisplay(status, logs) {
         logLines = logs.lines;
     }
     
-    $('log-content').innerHTML = logLines.length > 0
-        ? logLines.map(formatLogLine).join('\n')
-        : I18n.t('no_recent_logs');
-    
-    const logContainer = $('log-container');
-    if (logContainer) {
-        logContainer.scrollTop = logContainer.scrollHeight;
+    if ($('log-content')) {
+        $('log-content').innerHTML = logLines.length > 0
+            ? logLines.map(formatLogLine).join('\n')
+            : I18n.t('no_recent_logs');
+            
+        // Auto scroll if near bottom or first load
+        const logContainer = $('log-container');
+        if (logContainer) {
+            // Simple auto-scroll logic: always scroll to bottom on refresh
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
     }
     
-    $('diag-log-time').textContent = `${I18n.t('last_updated')}: ${new Date().toLocaleTimeString()}`;
+    if ($('diag-log-time')) {
+        $('diag-log-time').textContent = `${I18n.t('last_updated')}: ${new Date().toLocaleTimeString()}`;
+    }
 }
 
 function formatLogLine(line) {
@@ -377,12 +457,14 @@ function refreshLogs() {
 
 function scrollLogsToBottom() {
     const container = $('log-container');
-    container.scrollTop = container.scrollHeight;
+    if (container) container.scrollTop = container.scrollHeight;
 }
 
 // ==================== Tables ====================
 function renderServerTable() {
     const tbody = $('server-table-body');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     if (config.servers.length === 0) {
         tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_server_instances')}</td></tr>`;
@@ -406,6 +488,8 @@ function renderServerTable() {
 
 function renderClientTable() {
     const tbody = $('client-table-body');
+    if (!tbody) return;
+    
     tbody.innerHTML = '';
     if (config.clients.length === 0) {
         tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_client_instances')}</td></tr>`;
@@ -431,10 +515,13 @@ function renderClientTable() {
 function openAddModal(type) {
     modalState = { type, mode: 'add', index: -1 };
     $('modal-title').textContent = type === 'server' ? I18n.t('new_server') : I18n.t('new_client');
+    
+    // Toggle fields visibility
     $('server-fields').style.display = type === 'server' ? 'block' : 'none';
     $('client-fields').style.display = type === 'client' ? 'block' : 'none';
     $('client-advanced-fields').style.display = type === 'client' ? 'block' : 'none';
     
+    // Reset fields
     $('modal-enabled').checked = true;
     $('modal-alias').value = type === 'server' ? 'New Server' : 'New Client';
     $('modal-password').value = '';
@@ -443,6 +530,10 @@ function openAddModal(type) {
     $('modal-auth-mode').value = 'simple';
     $('modal-auto-iptables').checked = true;
     $('modal-extra-args').value = '';
+    
+    // Reset password visibility
+    const pwdInput = $('modal-password');
+    if (pwdInput) pwdInput.type = 'password';
     
     if (type === 'server') {
         $('modal-listen-ip').value = '0.0.0.0';
@@ -468,6 +559,7 @@ function openEditModal(type, index) {
     const item = type === 'server' ? config.servers[index] : config.clients[index];
     
     $('modal-title').textContent = item.alias || (type === 'server' ? 'Server' : 'Client');
+    
     $('server-fields').style.display = type === 'server' ? 'block' : 'none';
     $('client-fields').style.display = type === 'client' ? 'block' : 'none';
     $('client-advanced-fields').style.display = type === 'client' ? 'block' : 'none';
@@ -480,6 +572,10 @@ function openEditModal(type, index) {
     $('modal-auth-mode').value = item.auth_mode || 'simple';
     $('modal-auto-iptables').checked = item.auto_iptables !== false;
     $('modal-extra-args').value = item.extra_args || '';
+    
+    // Reset password visibility
+    const pwdInput = $('modal-password');
+    if (pwdInput) pwdInput.type = 'password';
     
     if (type === 'server') {
         $('modal-listen-ip').value = item.listen_ip || '0.0.0.0';
@@ -506,6 +602,20 @@ function closeModal() {
 
 function saveModal() {
     const isServer = modalState.type === 'server';
+    
+    // Basic Validation
+    if (isServer) {
+        if (!$('modal-forward-ip').value) {
+            alert(I18n.t('error_missing_ip') || 'Forward IP is required');
+            return;
+        }
+    } else {
+        if (!$('modal-server-ip').value) {
+            alert(I18n.t('error_missing_ip') || 'Server IP is required');
+            return;
+        }
+    }
+
     const item = {
         enabled: $('modal-enabled').checked,
         alias: $('modal-alias').value,
@@ -553,26 +663,50 @@ function deleteInstance(type, index) {
 
 // ==================== Init ====================
 document.addEventListener('DOMContentLoaded', () => {
+    // Theme Init
     const savedTheme = localStorage.getItem('udp_tunnel_theme') || 'dark';
     document.body.setAttribute('data-theme', savedTheme);
-    $('theme-icon-moon').style.display = savedTheme === 'dark' ? 'block' : 'none';
-    $('theme-icon-sun').style.display = savedTheme === 'light' ? 'block' : 'none';
+    const moonIcon = $('theme-icon-moon');
+    const sunIcon = $('theme-icon-sun');
+    if (moonIcon) moonIcon.style.display = savedTheme === 'dark' ? 'block' : 'none';
+    if (sunIcon) sunIcon.style.display = savedTheme === 'light' ? 'block' : 'none';
     
+    // Event Bindings for Main Buttons (Robustness check)
+    const btnSave = $('btn-save');
+    const btnSaveOnly = $('btn-save-only');
+    const btnReset = $('btn-reset');
+    
+    if (btnSave) btnSave.onclick = saveConfig;
+    if (btnSaveOnly) btnSaveOnly.onclick = saveConfigOnly;
+    if (btnReset) btnReset.onclick = resetConfig;
+
+    // Password Toggle Binding
+    const btnTogglePwd = document.querySelector('.btn-toggle-password');
+    if (btnTogglePwd) btnTogglePwd.onclick = togglePassword;
+
+    // Modal Overlay Click
+    const modalOverlay = $('modal-overlay');
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', e => {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+    
+    // Diagnostics Overlay Click
+    const diagOverlay = $('diag-overlay');
+    if (diagOverlay) {
+        diagOverlay.addEventListener('click', e => {
+            if (e.target === diagOverlay) closeDiagnostics();
+        });
+    }
+
     // Wait for i18n to initialize, then load data
     const checkI18n = setInterval(() => {
         if (typeof I18n !== 'undefined' && I18n.translations && Object.keys(I18n.translations).length > 0) {
             clearInterval(checkI18n);
             loadConfig();
             loadStatus();
-            setInterval(loadStatus, 5000);
+            statusAutoRefresh = setInterval(loadStatus, 5000);
         }
     }, 50);
-    
-    $('modal-overlay').addEventListener('click', e => {
-        if (e.target === $('modal-overlay')) closeModal();
-    });
-    
-    $('diag-overlay').addEventListener('click', e => {
-        if (e.target === $('diag-overlay')) closeDiagnostics();
-    });
 });
