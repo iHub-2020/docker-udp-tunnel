@@ -1,15 +1,14 @@
 /*
  * File: app/static/js/app.js
  * Author: iHub-2020
- * Date: 2026-01-13
- * Version: 2.5.1
+ * Date: 2026-01-14
+ * Version: 2.6.0
  * Description: Frontend logic for UDP Tunnel Manager
- * Updated: Fixed log parsing to handle string format from API
+ * Updated: Integrated with i18n.js module, removed duplicate i18n code
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
  */
 
 // ==================== State ====================
-let currentLang = 'zh';
 let config = {
     global: { enabled: false, keep_iptables: true, wait_lock: true, retry_on_error: true, log_level: 'info' },
     servers: [],
@@ -19,106 +18,14 @@ let originalConfig = null;
 let modalState = { type: null, mode: 'add', index: -1 };
 let diagAutoRefresh = null;
 
-// ==================== i18n ====================
-const i18n = {
-    zh: {
-        serviceStatus: '服务状态:',
-        running: '运行中',
-        stopped: '已停止',
-        disabled: '已禁用',
-        tunnelsActive: '个隧道运行中',
-        generalSettings: '常规设置',
-        generalSettingsDesc: 'udp2raw 守护进程的全局设置。',
-        serverInstances: '服务端实例',
-        serverModeDesc: '服务端模式: OpenWrt 监听来自远程客户端的连接。',
-        clientInstances: '客户端实例',
-        clientModeDesc: '客户端模式: OpenWrt 连接到远程 udp2raw 服务器 (VPS)。',
-        config: '配置',
-        status: '状态',
-        name: '名称',
-        enable: '启用',
-        wanPort: 'WAN 监听端口',
-        forwardIP: '转发目标 IP',
-        forwardPort: '转发目标端口',
-        vpsAddr: 'VPS 地址',
-        vpsPort: 'VPS 端口',
-        localPort: '本地监听端口',
-        actions: '操作',
-        edit: '编辑',
-        delete: '删除',
-        addServer: '添加服务端',
-        addClient: '添加客户端',
-        saveApply: '保存并应用',
-        saveOnly: '仅保存',
-        reset: '重置',
-        noServers: '未配置服务端实例。',
-        noClients: '未配置客户端实例。',
-        basicSettings: '基本设置',
-        advancedSettings: '高级设置',
-        close: '关闭',
-        save: '保存',
-        confirmDelete: '确定要删除此实例吗？',
-        configSaved: '配置已保存并应用！',
-        logLevel: '日志等级',
-        diagnostics: '诊断页面',
-        server: '服务端',
-        client: '客户端',
-        mode: '模式',
-        local: '本地',
-        remote: '远程',
-        protocol: '协议'
-    },
-    en: {
-        serviceStatus: 'Service:',
-        running: 'Running',
-        stopped: 'Stopped',
-        disabled: 'Disabled',
-        tunnelsActive: 'tunnels active',
-        generalSettings: 'General Settings',
-        generalSettingsDesc: 'Global settings for the udp2raw daemon.',
-        serverInstances: 'Server Instances',
-        serverModeDesc: 'Server Mode: OpenWrt listens for connections from remote clients.',
-        clientInstances: 'Client Instances',
-        clientModeDesc: 'Client Mode: OpenWrt connects to a remote udp2raw server (VPS).',
-        config: 'Config',
-        status: 'Status',
-        name: 'Name',
-        enable: 'Enable',
-        wanPort: 'WAN Listen Port',
-        forwardIP: 'Forward To IP',
-        forwardPort: 'Forward To Port',
-        vpsAddr: 'VPS Address',
-        vpsPort: 'VPS Port',
-        localPort: 'Local Listen Port',
-        actions: 'Actions',
-        edit: 'Edit',
-        delete: 'Delete',
-        addServer: 'Add Server',
-        addClient: 'Add Client',
-        saveApply: 'Save & Apply',
-        saveOnly: 'Save Only',
-        reset: 'Reset',
-        noServers: 'No server instances configured.',
-        noClients: 'No client instances configured.',
-        basicSettings: 'Basic Settings',
-        advancedSettings: 'Advanced Settings',
-        close: 'Close',
-        save: 'Save',
-        confirmDelete: 'Are you sure you want to delete this instance?',
-        configSaved: 'Configuration saved and applied!',
-        logLevel: 'Log Level',
-        diagnostics: 'Diagnostics',
-        server: 'Server',
-        client: 'Client',
-        mode: 'Mode',
-        local: 'Local',
-        remote: 'Remote',
-        protocol: 'Protocol'
-    }
-};
-
-function t(key) { return i18n[currentLang]?.[key] || i18n.en[key] || key; }
+// ==================== Utility ====================
 function $(id) { return document.getElementById(id); }
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
 
 // ==================== Dropdown ====================
 function toggleDropdown(id) {
@@ -137,48 +44,12 @@ document.addEventListener('click', e => {
 
 // ==================== Language ====================
 function setLanguage(lang) {
-    currentLang = lang;
-    localStorage.setItem('udp_tunnel_lang', lang);
-    document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
-    updateUITexts();
-}
-
-function updateUITexts() {
-    $('status-label').textContent = t('serviceStatus');
-    $('general-settings-title').textContent = t('generalSettings');
-    $('general-settings-desc').textContent = t('generalSettingsDesc');
-    $('server-instances-title').textContent = t('serverInstances') + ' (-s)';
-    $('server-mode-desc').textContent = t('serverModeDesc');
-    $('client-instances-title').textContent = t('clientInstances') + ' (-c)';
-    $('client-mode-desc').textContent = t('clientModeDesc');
-    $('sub-tab-server-config').textContent = t('config');
-    $('sub-tab-server-status').textContent = t('status');
-    $('sub-tab-client-config').textContent = t('config');
-    $('sub-tab-client-status').textContent = t('status');
-    $('th-s-name').textContent = t('name');
-    $('th-s-enable').textContent = t('enable');
-    $('th-s-wan-port').textContent = t('wanPort');
-    $('th-s-forward-ip').textContent = t('forwardIP');
-    $('th-s-forward-port').textContent = t('forwardPort');
-    $('th-s-actions').textContent = t('actions');
-    $('th-c-vps-addr').textContent = t('vpsAddr');
-    $('th-c-vps-port').textContent = t('vpsPort');
-    $('th-c-local-port').textContent = t('localPort');
-    $('btn-add-server').textContent = t('addServer');
-    $('btn-add-client').textContent = t('addClient');
-    $('btn-save-apply').textContent = t('saveApply');
-    $('btn-save').textContent = t('saveOnly');
-    $('btn-reset').textContent = t('reset');
-    $('no-servers-text').textContent = t('noServers');
-    $('no-clients-text').textContent = t('noClients');
-    $('modal-tab-basic').textContent = t('basicSettings');
-    $('modal-tab-advanced').textContent = t('advancedSettings');
-    $('modal-btn-close').textContent = t('close');
-    $('modal-btn-save').textContent = t('save');
-    $('label-log-level').textContent = t('logLevel');
-    $('btn-diagnostics').querySelector('span').textContent = t('diagnostics');
-    renderServerTable();
-    renderClientTable();
+    I18n.setLanguage(lang).then(() => {
+        document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
+        renderServerTable();
+        renderClientTable();
+        loadStatus();
+    });
 }
 
 // ==================== Theme ====================
@@ -259,7 +130,6 @@ async function loadDiagnostics() {
         const status = await statusRes.json();
         const logs = await logsRes.json();
         const diag = await diagRes.json();
-        // 合并 diagnostics 数据到 status
         status.binary = diag.binary;
         status.iptables = diag.iptables;
         updateDiagnosticsDisplay(status, logs);
@@ -278,12 +148,12 @@ async function saveConfig() {
         });
         if (res.ok) {
             originalConfig = JSON.parse(JSON.stringify(config));
-            alert(t('configSaved'));
+            alert(I18n.t('config_saved'));
             loadStatus();
         }
     } catch (e) {
         console.error('Failed to save config:', e);
-        alert('Failed to save configuration');
+        alert(I18n.t('config_save_failed'));
     }
 }
 
@@ -297,7 +167,7 @@ async function saveConfigOnly() {
         });
         if (res.ok) {
             originalConfig = JSON.parse(JSON.stringify(config));
-            alert('Configuration saved!');
+            alert(I18n.t('config_saved_only'));
         }
     } catch (e) {
         console.error('Failed to save config:', e);
@@ -336,9 +206,9 @@ function updateStatusDisplay(data) {
     const activeCount = tunnels.filter(t => t.running).length;
     const isRunning = activeCount > 0;
     
-    $('status-badge').textContent = isRunning ? t('running') : t('stopped');
+    $('status-badge').textContent = isRunning ? I18n.t('running') : I18n.t('stopped');
     $('status-badge').className = 'status-badge ' + (isRunning ? 'running' : 'stopped');
-    $('tunnel-count').textContent = `(${activeCount} ${t('tunnelsActive')})`;
+    $('tunnel-count').textContent = `(${I18n.t('tunnels_active', { count: activeCount })})`;
     
     updateStatusTables(tunnels);
 }
@@ -351,7 +221,7 @@ function updateStatusTables(tunnels) {
         serverBody.innerHTML += `
             <tr>
                 <td>${escapeHtml(s.alias || 'Server ' + i)}</td>
-                <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? t('running') : t('stopped')}</span></td>
+                <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? I18n.t('running') : I18n.t('stopped')}</span></td>
                 <td>${s.listen_ip || '0.0.0.0'}:${s.listen_port}</td>
                 <td>${s.forward_ip}:${s.forward_port}</td>
                 <td>${s.raw_mode || 'faketcp'}</td>
@@ -359,7 +229,7 @@ function updateStatusTables(tunnels) {
             </tr>`;
     });
     if (config.servers.length === 0) {
-        serverBody.innerHTML = '<tr class="empty-row"><td colspan="6">No server instances.</td></tr>';
+        serverBody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_server_instances')}</td></tr>`;
     }
     
     const clientBody = $('client-status-table-body');
@@ -369,7 +239,7 @@ function updateStatusTables(tunnels) {
         clientBody.innerHTML += `
             <tr>
                 <td>${escapeHtml(c.alias || 'Client ' + i)}</td>
-                <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? t('running') : t('stopped')}</span></td>
+                <td><span class="status-badge ${status.running ? 'running' : 'stopped'}">${status.running ? I18n.t('running') : I18n.t('stopped')}</span></td>
                 <td>${c.local_ip || '127.0.0.1'}:${c.local_port}</td>
                 <td>${c.server_ip}:${c.server_port}</td>
                 <td>${c.raw_mode || 'faketcp'}</td>
@@ -377,7 +247,7 @@ function updateStatusTables(tunnels) {
             </tr>`;
     });
     if (config.clients.length === 0) {
-        clientBody.innerHTML = '<tr class="empty-row"><td colspan="6">No client instances.</td></tr>';
+        clientBody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_client_instances')}</td></tr>`;
     }
 }
 
@@ -396,7 +266,6 @@ function closeDiagnostics() {
     }
 }
 
-// Strip ANSI color codes from text
 function stripAnsi(text) {
     return text.replace(/\x1b\[[0-9;]*m/g, '');
 }
@@ -405,24 +274,22 @@ function updateDiagnosticsDisplay(status, logs) {
     const tunnels = status.tunnels || [];
     const activeCount = tunnels.filter(t => t.running).length;
     
-    // Service status
     const statusHtml = activeCount > 0
-        ? `<span class="status-text running">${t('running')}</span> <span class="status-count">(${activeCount} tunnels active)</span>`
-        : `<span class="status-text stopped">${t('stopped')}</span>`;
+        ? `<span class="status-text running">${I18n.t('running')}</span> <span class="status-count">(${I18n.t('tunnels_active', { count: activeCount })})</span>`
+        : `<span class="status-text stopped">${I18n.t('stopped')}</span>`;
     $('diag-service-status').innerHTML = statusHtml;
     
-    // Tunnel table
     const tunnelBody = $('diag-tunnel-table');
     tunnelBody.innerHTML = '';
     
     config.servers.forEach((s, i) => {
         const st = tunnels.find(t => t.id === `server_${i}`) || {};
         const statusClass = st.running ? 'running' : (s.enabled ? 'stopped' : 'disabled');
-        const statusText = st.running ? t('running') : (s.enabled ? t('stopped') : t('disabled'));
+        const statusText = st.running ? I18n.t('running') : (s.enabled ? I18n.t('stopped') : I18n.t('disabled'));
         tunnelBody.innerHTML += `
             <tr>
                 <td>${escapeHtml(s.alias || 'Server')}</td>
-                <td>服务端</td>
+                <td>${I18n.t('server')}</td>
                 <td><span class="status-text ${statusClass}">${statusText}</span></td>
                 <td>${s.listen_ip || '0.0.0.0'}:${s.listen_port}</td>
                 <td>${s.forward_ip}:${s.forward_port}</td>
@@ -434,11 +301,11 @@ function updateDiagnosticsDisplay(status, logs) {
     config.clients.forEach((c, i) => {
         const st = tunnels.find(t => t.id === `client_${i}`) || {};
         const statusClass = st.running ? 'running' : (c.enabled ? 'stopped' : 'disabled');
-        const statusText = st.running ? t('running') : (c.enabled ? t('stopped') : t('disabled'));
+        const statusText = st.running ? I18n.t('running') : (c.enabled ? I18n.t('stopped') : I18n.t('disabled'));
         tunnelBody.innerHTML += `
             <tr>
                 <td>${escapeHtml(c.alias || 'Client')}</td>
-                <td>客户端</td>
+                <td>${I18n.t('client')}</td>
                 <td><span class="status-text ${statusClass}">${statusText}</span></td>
                 <td>${c.local_ip || '127.0.0.1'}:${c.local_port}</td>
                 <td>${c.server_ip}:${c.server_port}</td>
@@ -448,56 +315,48 @@ function updateDiagnosticsDisplay(status, logs) {
     });
     
     if (config.servers.length === 0 && config.clients.length === 0) {
-        tunnelBody.innerHTML = '<tr class="empty-row"><td colspan="7">No tunnel instances configured.</td></tr>';
+        tunnelBody.innerHTML = `<tr class="empty-row"><td colspan="7">${I18n.t('no_instances')}</td></tr>`;
     }
     
-	// Binary & iptables
     if (status.binary) {
         const icon = status.binary.installed ? '✓' : '✗';
         const iconClass = status.binary.installed ? 'success' : 'error';
         $('diag-binary').innerHTML = `<span class="status-icon ${iconClass}">${icon}</span> ${status.binary.text || 'Unknown'} <span class="diag-hash">(${status.binary.hash || 'N/A'})</span>`;
     }
     
-	if (status.iptables) {
-        const chains = status.iptables.chains || [];		
-		if (status.iptables.present && chains.length > 0) {
-			const chainCodes = chains.slice(0, 2).map(c => `<code class="diag-code">${c}</code>`).join(' ');
-			$('diag-iptables').innerHTML = `<span class="status-icon success">✓</span> ${status.iptables.text} ${chainCodes}`;
+    if (status.iptables) {
+        const chains = status.iptables.chains || [];
+        if (status.iptables.present && chains.length > 0) {
+            const chainCodes = chains.slice(0, 2).map(c => `<code class="diag-code">${c}</code>`).join(' ');
+            $('diag-iptables').innerHTML = `<span class="status-icon success">✓</span> ${status.iptables.text} ${chainCodes}`;
         } else {
-            $('diag-iptables').innerHTML = `<span class="status-icon error">✗</span> ${status.iptables.text || 'No active rules'}`;
+            $('diag-iptables').innerHTML = `<span class="status-icon error">✗</span> ${status.iptables.text || I18n.t('no_active_rules')}`;
         }
     }
     
-    // Logs - handle both string format and array format
     let logLines = [];
     if (logs.logs && typeof logs.logs === 'string') {
-        // API returns logs as a single string with \n separators
         logLines = logs.logs.split('\n').filter(line => line.trim());
     } else if (logs.lines && Array.isArray(logs.lines)) {
-        // Alternative format: array of lines
         logLines = logs.lines;
     }
     
     $('log-content').innerHTML = logLines.length > 0
         ? logLines.map(formatLogLine).join('\n')
-        : 'No recent logs.';
+        : I18n.t('no_recent_logs');
     
-    // Auto-scroll to bottom
     const logContainer = $('log-container');
     if (logContainer) {
         logContainer.scrollTop = logContainer.scrollHeight;
     }
     
-    // Timestamp
-    $('diag-log-time').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+    $('diag-log-time').textContent = `${I18n.t('last_updated')}: ${new Date().toLocaleTimeString()}`;
 }
 
 function formatLogLine(line) {
-    // Strip ANSI codes first, then escape HTML
     const cleaned = stripAnsi(line);
     const escaped = escapeHtml(cleaned);
     
-    // Apply syntax highlighting
     let formatted = escaped
         .replace(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/g, '<span class="log-time">$1</span>')
         .replace(/\[INFO\]/g, '<span class="log-level-info">[INFO]</span>')
@@ -522,17 +381,11 @@ function scrollLogsToBottom() {
 }
 
 // ==================== Tables ====================
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text || '';
-    return div.innerHTML;
-}
-
 function renderServerTable() {
     const tbody = $('server-table-body');
     tbody.innerHTML = '';
     if (config.servers.length === 0) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6" id="no-servers-text">${t('noServers')}</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_server_instances')}</td></tr>`;
         return;
     }
     config.servers.forEach((s, i) => {
@@ -544,8 +397,8 @@ function renderServerTable() {
                 <td>${escapeHtml(s.forward_ip || '')}</td>
                 <td>${s.forward_port || ''}</td>
                 <td>
-                    <button class="btn btn-outline btn-sm" onclick="openEditModal('server',${i})">${t('edit')}</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteInstance('server',${i})">${t('delete')}</button>
+                    <button class="btn btn-outline btn-sm" onclick="openEditModal('server',${i})">${I18n.t('edit')}</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteInstance('server',${i})">${I18n.t('delete')}</button>
                 </td>
             </tr>`;
     });
@@ -555,7 +408,7 @@ function renderClientTable() {
     const tbody = $('client-table-body');
     tbody.innerHTML = '';
     if (config.clients.length === 0) {
-        tbody.innerHTML = `<tr class="empty-row"><td colspan="6" id="no-clients-text">${t('noClients')}</td></tr>`;
+        tbody.innerHTML = `<tr class="empty-row"><td colspan="6">${I18n.t('no_client_instances')}</td></tr>`;
         return;
     }
     config.clients.forEach((c, i) => {
@@ -567,8 +420,8 @@ function renderClientTable() {
                 <td>${c.server_port || ''}</td>
                 <td>${c.local_port || ''}</td>
                 <td>
-                    <button class="btn btn-outline btn-sm" onclick="openEditModal('client',${i})">${t('edit')}</button>
-                    <button class="btn btn-danger btn-sm" onclick="deleteInstance('client',${i})">${t('delete')}</button>
+                    <button class="btn btn-outline btn-sm" onclick="openEditModal('client',${i})">${I18n.t('edit')}</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteInstance('client',${i})">${I18n.t('delete')}</button>
                 </td>
             </tr>`;
     });
@@ -577,7 +430,7 @@ function renderClientTable() {
 // ==================== Modal ====================
 function openAddModal(type) {
     modalState = { type, mode: 'add', index: -1 };
-    $('modal-title').textContent = type === 'server' ? 'New Server' : 'New Client';
+    $('modal-title').textContent = type === 'server' ? I18n.t('new_server') : I18n.t('new_client');
     $('server-fields').style.display = type === 'server' ? 'block' : 'none';
     $('client-fields').style.display = type === 'client' ? 'block' : 'none';
     $('client-advanced-fields').style.display = type === 'client' ? 'block' : 'none';
@@ -691,7 +544,7 @@ function saveModal() {
 }
 
 function deleteInstance(type, index) {
-    if (confirm(t('confirmDelete'))) {
+    if (confirm(I18n.t('confirm_delete'))) {
         type === 'server' ? config.servers.splice(index, 1) : config.clients.splice(index, 1);
         renderServerTable();
         renderClientTable();
@@ -700,17 +553,20 @@ function deleteInstance(type, index) {
 
 // ==================== Init ====================
 document.addEventListener('DOMContentLoaded', () => {
-    currentLang = localStorage.getItem('udp_tunnel_lang') || 'zh';
     const savedTheme = localStorage.getItem('udp_tunnel_theme') || 'dark';
     document.body.setAttribute('data-theme', savedTheme);
     $('theme-icon-moon').style.display = savedTheme === 'dark' ? 'block' : 'none';
     $('theme-icon-sun').style.display = savedTheme === 'light' ? 'block' : 'none';
     
-    loadConfig();
-    loadStatus();
-    updateUITexts();
-    
-    setInterval(loadStatus, 5000);
+    // Wait for i18n to initialize, then load data
+    const checkI18n = setInterval(() => {
+        if (typeof I18n !== 'undefined' && I18n.translations && Object.keys(I18n.translations).length > 0) {
+            clearInterval(checkI18n);
+            loadConfig();
+            loadStatus();
+            setInterval(loadStatus, 5000);
+        }
+    }, 50);
     
     $('modal-overlay').addEventListener('click', e => {
         if (e.target === $('modal-overlay')) closeModal();
