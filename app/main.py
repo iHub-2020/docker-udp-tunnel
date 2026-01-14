@@ -1,13 +1,12 @@
 # ----------------------------------------------------------------------
 # File: app/main.py
 # Author: iHub-2020
-# Date: 2026-01-13
-# Version: 1.4.0
+# Date: 2026-01-14
+# Version: 1.4.1
 # Description: Flask web server entry point with logs and diagnostics API
 # Updated: 
-#   - Added RotatingFileHandler to fix empty log directory issue
-#   - Fixed binary verification to use dynamic MD5 instead of hardcoded hash
-#   - Improved iptables rule detection and display
+#   - Verified regex for iptables chain matching
+#   - Confirmed dynamic MD5 verification logic
 # ----------------------------------------------------------------------
 from flask import Flask, render_template, jsonify, request
 from app.config_manager import ConfigManager
