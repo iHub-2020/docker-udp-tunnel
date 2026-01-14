@@ -2,9 +2,9 @@
  * File: app/static/css/style.css
  * Author: iHub-2020
  * Date: 2026-01-14
- * Version: 2.6.1
+ * Version: 2.6.2
  * Description: Modern UI theme for UDP Tunnel Manager
- * Updated: Strict 1:1 visual restoration with semantic class names (Navbar, Form-Row, Tabs)
+ * Updated: Fixed selectors to match app.js IDs and index.html structure
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
  */
 
@@ -95,8 +95,9 @@ body {
 
 /* ============================================
    Header (Renamed to .navbar)
+   Fixed: Added .header and header tag support
    ============================================ */
-.navbar {
+.navbar, .header, header {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -106,24 +107,25 @@ body {
     position: relative;
 }
 
-.navbar-content {
+.navbar-content, .header-content {
     display: flex;
     align-items: baseline;
     gap: 12px;
 }
 
-.navbar-title {
+.navbar-title, .header-title, h1 {
     font-size: 18px;
     font-weight: 600;
     color: var(--text-primary);
+    margin: 0;
 }
 
-.navbar-subtitle {
+.navbar-subtitle, .header-subtitle {
     font-size: 13px;
     color: var(--text-muted);
 }
 
-.navbar-actions {
+.navbar-actions, .header-actions {
     position: absolute;
     right: 24px;
     top: 50%;
@@ -149,7 +151,7 @@ body {
     cursor: pointer;
     transition: all 0.15s;
     text-decoration: none;
-    padding: 0; /* Reset padding */
+    padding: 0;
 }
 
 .btn-icon:hover {
@@ -202,8 +204,9 @@ body {
 
 /* ============================================
    Status Bar (Renamed to .status-bar)
+   Fixed: Added #status-bar ID support
    ============================================ */
-.status-bar {
+.status-bar, #status-bar {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -225,7 +228,7 @@ body {
     color: var(--text-secondary);
 }
 
-.status-badge {
+.status-badge, #status-badge {
     display: inline-block;
     padding: 3px 10px;
     border-radius: 4px;
@@ -236,7 +239,7 @@ body {
 .status-badge.running { background: var(--success); color: #fff; }
 .status-badge.stopped { background: #6b7280; color: #fff; }
 
-.status-count {
+.status-count, #tunnel-count {
     font-size: 12px;
     color: var(--text-muted);
 }
@@ -296,8 +299,9 @@ body {
 
 /* ============================================
    Card
+   Fixed: Added .panel and .section for compatibility
    ============================================ */
-.card {
+.card, .panel, .section {
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
@@ -305,16 +309,17 @@ body {
     overflow: hidden;
 }
 
-.card-header {
+.card-header, .panel-header {
     padding: 14px 20px;
     border-bottom: 1px solid var(--border-color);
 }
 
-.card-title {
+.card-title, .panel-title, h3 {
     font-size: 14px;
     font-weight: 600;
     margin-bottom: 2px;
     color: var(--text-primary);
+    margin-top: 0;
 }
 
 .card-desc {
@@ -323,19 +328,19 @@ body {
     margin: 0;
 }
 
-.card-body { padding: 16px 20px; }
+.card-body, .panel-body { padding: 16px 20px; }
 .card-body.no-padding { padding: 0; }
 
 /* ============================================
    Settings Form (Renamed to .form-row)
-   RESTORED: Flex layout, Border-bottom, Label width
+   Fixed: Added .settings-form and .form-group support
    ============================================ */
 .form-list {
     display: flex;
     flex-direction: column;
 }
 
-.form-row {
+.form-row, .settings-form, .form-group {
     display: flex;
     align-items: center;
     min-height: 44px;
@@ -343,9 +348,11 @@ body {
     border-bottom: 1px solid var(--border-color);
 }
 
-.form-row:last-child { border-bottom: none; }
+.form-row:last-child, .settings-form:last-child, .form-group:last-child { 
+    border-bottom: none; 
+}
 
-.form-label {
+.form-label, label {
     width: 180px;
     min-width: 180px;
     font-size: 13px;
@@ -369,14 +376,14 @@ body {
 
 .form-hint.success { color: var(--hint-success); }
 
-.checkbox {
+.checkbox, input[type="checkbox"] {
     width: 16px;
     height: 16px;
     cursor: pointer;
     accent-color: var(--accent);
 }
 
-.form-select {
+.form-select, select {
     padding: 5px 10px;
     font-size: 13px;
     color: var(--text-primary);
@@ -387,21 +394,22 @@ body {
     min-width: 140px;
 }
 
-.form-select:focus {
+.form-select:focus, select:focus {
     outline: none;
     border-color: var(--accent);
 }
 
 /* ============================================
    Tabs (Renamed to .tab-nav)
+   Fixed: Added .tabs support
    ============================================ */
-.tab-nav {
+.tab-nav, .tabs {
     display: flex;
     background: var(--bg-table-header);
     border-bottom: 1px solid var(--border-color);
 }
 
-.tab-btn {
+.tab-btn, .tab {
     padding: 8px 18px;
     background: none;
     border: none;
@@ -414,8 +422,8 @@ body {
     transition: all 0.15s;
 }
 
-.tab-btn:hover { color: var(--text-primary); }
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tab-btn:hover, .tab:hover { color: var(--text-primary); }
+.tab-btn.active, .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
 /* ============================================
    Tab Content
@@ -430,16 +438,17 @@ body {
 
 /* ============================================
    Table (Renamed to .table)
+   Fixed: Added generic table tag support
    ============================================ */
 .table-responsive { overflow-x: auto; }
 
-.table {
+.table, table {
     width: 100%;
     border-collapse: collapse;
     font-size: 13px;
 }
 
-.table th {
+.table th, table th {
     background: var(--bg-table-header);
     color: var(--text-secondary);
     font-weight: 500;
@@ -449,16 +458,16 @@ body {
     white-space: nowrap;
 }
 
-.table td {
+.table td, table td {
     padding: 10px 14px;
     border-bottom: 1px solid var(--border-color);
     vertical-align: middle;
 }
 
-.table tbody tr:nth-child(odd) { background: var(--bg-table-odd); }
-.table tbody tr:nth-child(even) { background: var(--bg-table-even); }
-.table tbody tr:hover { background: var(--bg-hover); }
-.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr:nth-child(odd), table tbody tr:nth-child(odd) { background: var(--bg-table-odd); }
+.table tbody tr:nth-child(even), table tbody tr:nth-child(even) { background: var(--bg-table-even); }
+.table tbody tr:hover, table tbody tr:hover { background: var(--bg-hover); }
+.table tbody tr:last-child td, table tbody tr:last-child td { border-bottom: none; }
 
 .empty-row td {
     text-align: center;
@@ -473,7 +482,7 @@ body {
 /* ============================================
    Buttons
    ============================================ */
-.btn {
+.btn, button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -487,7 +496,7 @@ body {
     transition: all 0.15s;
 }
 
-.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn:disabled, button:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
 .btn-secondary { background: #4b5563; color: #fff; }
@@ -524,8 +533,9 @@ body {
 
 /* ============================================
    Modal
+   Fixed: Added #modal-overlay and #diag-overlay support
    ============================================ */
-.modal-overlay {
+.modal-overlay, #modal-overlay, #diag-overlay {
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
@@ -537,11 +547,16 @@ body {
     overflow-y: auto;
 }
 
-.modal-overlay.show {
+.modal-overlay.show, 
+#modal-overlay[style*="display: flex"], 
+#diag-overlay[style*="display: flex"] {
     display: flex;
 }
 
-.modal {
+/* Ensure the modal box inside the overlay is styled correctly */
+.modal, 
+#modal-overlay > div, 
+#diag-overlay > div {
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     width: 90%;
@@ -552,6 +567,8 @@ body {
     display: flex;
     flex-direction: column;
     margin-bottom: 5vh;
+    /* Reset text color in case it inherits weirdly */
+    color: var(--text-primary);
 }
 
 .modal-lg { max-width: 955px; }
@@ -603,7 +620,7 @@ body {
 .modal-tab:hover { color: var(--text-primary); }
 .modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
-.modal-body {
+.modal-body, .diag-body {
     padding: 24px 28px;
     flex: 1;
     overflow-y: auto;
@@ -643,7 +660,7 @@ body {
     gap: 6px;
 }
 
-.form-control {
+.form-control, input[type="text"], input[type="number"], input[type="password"] {
     width: 100%;
     max-width: 300px;
     padding: 8px 12px;
@@ -655,7 +672,7 @@ body {
     transition: border-color 0.15s;
 }
 
-.form-control:focus { outline: none; border-color: var(--accent); }
+.form-control:focus, input:focus { outline: none; border-color: var(--accent); }
 .form-control::placeholder { color: var(--text-muted); }
 
 .form-help {
@@ -737,7 +754,7 @@ body {
 
 .diag-header .diag-title { margin-bottom: 0; }
 
-.diag-timestamp {
+.diag-timestamp, #diag-log-time {
     font-size: 11px;
     color: var(--text-muted);
 }
@@ -797,15 +814,17 @@ body {
 
 /* Diagnostics Table */
 .diag-table th,
-.diag-table td {
+.diag-table td,
+#diag-tunnel-table td {
     padding: 8px 12px;
     font-size: 12px;
 }
 
 /* ============================================
    Log Container
+   Fixed: Added #log-container ID support
    ============================================ */
-.log-container {
+.log-container, #log-container {
     background: var(--bg-log);
     border-radius: var(--radius);
     max-height: 350px;
@@ -814,7 +833,7 @@ body {
     position: relative;
 }
 
-.log-content {
+.log-content, #log-content {
     margin: 0;
     padding: 12px 14px;
     font-family: "SF Mono", "Monaco", "Consolas", "Menlo", monospace;
@@ -852,30 +871,30 @@ body {
    Responsive
    ============================================ */
 @media (max-width: 768px) {
-    .navbar { flex-direction: column; padding: 14px 16px; gap: 8px; }
-    .navbar-actions { position: static; transform: none; margin-top: 8px; }
-    .navbar-content { flex-direction: column; align-items: center; gap: 2px; }
+    .navbar, .header, header { flex-direction: column; padding: 14px 16px; gap: 8px; }
+    .navbar-actions, .header-actions { position: static; transform: none; margin-top: 8px; }
+    .navbar-content, .header-content { flex-direction: column; align-items: center; gap: 2px; }
     .container { padding: 16px 12px; }
     
-    .status-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
+    .status-bar, #status-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
     .btn-diag { width: 100%; justify-content: center; }
     
     /* Responsive Form Rows */
-    .form-row { 
+    .form-row, .settings-form, .form-group { 
         flex-direction: column; 
         min-height: auto; 
         padding: 12px 20px; 
         align-items: flex-start; 
         gap: 8px; 
     }
-    .form-label { width: 100%; text-align: left; padding-right: 0; }
+    .form-label, label { width: 100%; text-align: left; padding-right: 0; }
     
     .modal-form-row { grid-template-columns: 1fr; gap: 8px; }
     .modal-form-label { text-align: left; padding-top: 0; }
-    .form-control { max-width: 100%; }
+    .form-control, input[type="text"] { max-width: 100%; }
     .input-group { max-width: 100%; }
     
-    .modal { width: 95%; max-height: 90vh; }
+    .modal, #modal-overlay > div, #diag-overlay > div { width: 95%; max-height: 90vh; }
     .modal-lg { max-width: 95%; }
     .modal-body { padding: 16px; }
     
