@@ -12,6 +12,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="/static/js/i18n.js"></script>
     <title>UDP Tunnel Manager</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
@@ -19,8 +20,8 @@
     <!-- Header -->
     <header class="top-header">
         <div class="header-center">
-            <h1 class="header-title">UDP Tunnel Manager</h1>
-            <span class="header-subtitle">A web UI based on udp2raw</span>
+            <h1 class="header-title" data-i18n="app_title">UDP Tunnel Manager</h1>
+            <span class="header-subtitle" data-i18n="app_subtitle">A web UI based on udp2raw</span>
         </div>
         <div class="header-actions">
             <!-- Language Dropdown -->
@@ -69,8 +70,8 @@
         <!-- Status Bar -->
         <div class="status-bar-wrapper">
             <div class="status-bar-left">
-                <span class="status-label" id="status-label">服务状态:</span>
-                <span class="status-badge stopped" id="status-badge">已停止</span>
+                <span data-i18n="service_status">Service Status</span>
+                <span data-i18n="stopped">Stopped</span>
                 <span class="status-count" id="tunnel-count">(0 个隧道运行中)</span>
             </div>
             <button class="btn-diag" id="btn-diagnostics" onclick="openDiagnostics()">
