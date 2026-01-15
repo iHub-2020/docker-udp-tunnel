@@ -315,7 +315,7 @@
     function updateDiagnosticsDisplay(status, logs) {
         const tunnels = status.tunnels || [];
         
-        // Tunnel table (Fixed: diagTunnelTable is the table, need tbody)
+        // Tunnel table
         const table = getEl('diagTunnelTable');
         let tunnelBody = table ? table.querySelector('tbody') : getEl('diagTunnelBody');
         
@@ -369,7 +369,41 @@
             }
         }
         
-        // Logs (Fixed ID)
+        // 🟢 Update Binary Status
+        const binaryEl = getEl('diagBinary');
+        if (binaryEl && status.binary) {
+            if (status.binary.installed) {
+                binaryEl.innerHTML = `
+                    <span class="status-icon success">✓</span>
+                    <span>${escapeHtml(status.binary.text)}</span>
+                    ${status.binary.hash ? `<span class="diag-hash">(${escapeHtml(status.binary.hash)})</span>` : ''}
+                `;
+            } else {
+                binaryEl.innerHTML = `
+                    <span class="status-icon error">✗</span>
+                    <span>${escapeHtml(status.binary.text)}</span>
+                `;
+            }
+        }
+        
+        // 🟢 Update Iptables Status
+        const iptablesEl = getEl('diagIptables');
+        if (iptablesEl && status.iptables) {
+            if (status.iptables.present && status.iptables.chains && status.iptables.chains.length > 0) {
+                iptablesEl.innerHTML = `
+                    <span class="status-icon success">✓</span>
+                    <span>${escapeHtml(status.iptables.text)}</span>
+                    <span class="diag-code">${escapeHtml(status.iptables.chains[0])}</span>
+                `;
+            } else {
+                iptablesEl.innerHTML = `
+                    <span class="status-icon error">✗</span>
+                    <span>${escapeHtml(status.iptables.text)}</span>
+                `;
+            }
+        }
+        
+        // Update Logs
         let logLines = [];
         if (logs.logs && typeof logs.logs === 'string') {
             logLines = logs.logs.split('\n').filter(l => l.trim());
@@ -385,20 +419,20 @@
                 logContent.innerHTML = '<span class="log-line" data-i18n="no_logs">No recent logs.</span>';
             }
             
-            // Auto scroll to bottom (use class selector)
+            // Auto scroll to bottom
             const logContainer = getElBySelector('.log-container');
             if (logContainer) {
                 logContainer.scrollTop = logContainer.scrollHeight;
             }
         }
         
-        // Update timestamp (Fixed ID)
+        // Update timestamp
         const timestamp = getEl('logTimestamp');
         if (timestamp) {
             timestamp.textContent = new Date().toLocaleTimeString();
         }
     }
-
+   
     /**
      * Format log line with highlighting
      */
@@ -1008,3 +1042,4 @@
     window.config = config;
 
 })();
+
