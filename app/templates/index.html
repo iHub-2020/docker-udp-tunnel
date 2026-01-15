@@ -1,10 +1,13 @@
 <!--
  * File: app/templates/index.html
  * Author: iHub-2020
- * Date: 2026-01-14
- * Version: 2.8.0
+ * Date: 2026-01-15
+ * Version: 2.9.0
  * Description: UDP Tunnel Manager - Web UI for udp2raw
- * Updated: Integrated i18n internationalization support with data-i18n attributes
+ * Updated: 
+ *   - Removed all inline scripts (moved to app.js)
+ *   - Fixed Advanced Settings parameter classification
+ *   - Added data-i18n attributes for all translatable elements
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
 -->
 <!DOCTYPE html>
@@ -179,16 +182,8 @@
                                 </tr>
                             </thead>
                             <tbody id="serverTableBody">
-                                <tr>
-                                    <td>New Server</td>
-                                    <td><input type="checkbox" class="checkbox" checked></td>
-                                    <td>29900</td>
-                                    <td>127.0.0.1</td>
-                                    <td>51820</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline" onclick="openEditModal('server', 0)" data-i18n="edit">Edit</button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteInstance('server', 0)" data-i18n="delete">Delete</button>
-                                    </td>
+                                <tr class="empty-row">
+                                    <td colspan="6" data-i18n="no_server_instances">No server instances.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -252,16 +247,8 @@
                                 </tr>
                             </thead>
                             <tbody id="clientTableBody">
-                                <tr>
-                                    <td>New Client</td>
-                                    <td><input type="checkbox" class="checkbox" checked></td>
-                                    <td>10.10.10.1</td>
-                                    <td>29900</td>
-                                    <td>3333</td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline" onclick="openEditModal('client', 0)" data-i18n="edit">Edit</button>
-                                        <button class="btn btn-sm btn-danger" onclick="deleteInstance('client', 0)" data-i18n="delete">Delete</button>
-                                    </td>
+                                <tr class="empty-row">
+                                    <td colspan="6" data-i18n="no_client_instances">No client instances.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -437,48 +424,48 @@
                 
                 <!-- Advanced Settings Tab -->
                 <div class="tab-content" id="advancedTab">
-                    <div class="form-row">
+                    <!-- 🟢 Client-Only Parameters -->
+                    <div class="form-row client-field" style="display:none;">
                         <label class="form-label" data-i18n="source_ip">Source IP (--source-ip)</label>
                         <div class="form-control-wrapper">
                             <input type="text" class="form-control" id="editSourceIp" placeholder="">
-                            <span class="form-hint" data-i18n="source_ip_hint">ⓘ Force source-ip for raw socket. Leave empty unless necessary.</span>
+                            <span class="form-hint" data-i18n="source_ip_hint">ⓘ Client only. Force source-ip for raw socket.</span>
                         </div>
                     </div>
-                    <div class="form-row">
+                    <div class="form-row client-field" style="display:none;">
                         <label class="form-label" data-i18n="source_port">Source Port (--source-port)</label>
                         <div class="form-control-wrapper">
                             <input type="number" class="form-control" id="editSourcePort" placeholder="">
-                            <span class="form-hint" data-i18n="source_port_hint">ⓘ Force source-port for raw socket. Disables port changing. Leave empty unless necessary.</span>
+                            <span class="form-hint" data-i18n="source_port_hint">ⓘ Client only. Disables port changing while re-connecting.</span>
                         </div>
                     </div>
+                    <div class="form-row client-field" style="display:none;">
+                        <label class="form-label" data-i18n="seq_mode">Sequence Mode (--seq-mode)</label>
+                        <div class="form-control-wrapper">
+                            <select class="form-select" id="editSeqMode">
+                                <option value="0">0 - Static header</option>
+                                <option value="1">1 - Increase seq for every packet</option>
+                                <option value="2">2 - Increase seq randomly</option>
+                                <option value="3" selected>3 - Simulate real TCP (Recommended)</option>
+                                <option value="4">4 - Similar to 3, no TCP Window Scale</option>
+                            </select>
+                            <span class="form-hint" data-i18n="seq_mode_hint">ⓘ FakeTCP behavior simulation. Mode 3 is recommended.</span>
+                        </div>
+                    </div>
+                    
+                    <!-- 🟡 Common Parameters (Server & Client) -->
                     <div class="form-row">
                         <label class="form-label" data-i18n="auto_iptables">Auto Add Iptables Rule (-a)</label>
                         <div class="form-control-wrapper">
                             <input type="checkbox" class="checkbox" id="editAutoIptables" checked>
-                            <span class="form-hint" data-i18n="auto_iptables_hint">ⓘ Automatically add iptables rules to block kernel TCP processing. Required for FakeTCP.</span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label class="form-label" data-i18n="seq_mode">Sequence Mode</label>
-                        <div class="form-control-wrapper">
-                            <select class="form-select" id="editSeqMode">
-                                <option value="0" data-i18n="seq_mode_0">0 - Disabled</option>
-                                <option value="1" data-i18n="seq_mode_1">1 - Simple</option>
-                                <option value="2" data-i18n="seq_mode_2">2 - Basic</option>
-                                <option value="3" selected data-i18n="seq_mode_3">3 - Simulate real TCP (Recommended)</option>
-                                <option value="4" data-i18n="seq_mode_4">4 - Full simulation</option>
-                            </select>
-                            <span class="form-hint" data-i18n="seq_mode_hint">ⓘ FakeTCP behavior simulation.</span>
+                            <span class="form-hint" data-i18n="auto_iptables_hint">ⓘ Required for FakeTCP mode. Auto-adds iptables rules.</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <label class="form-label" data-i18n="extra_args">Extra Arguments</label>
                         <div class="form-control-wrapper">
-                            <div class="input-group">
-                                <input type="text" class="form-control" id="editExtraArgs" placeholder="">
-                                <button type="button" class="btn-add-arg">+</button>
-                            </div>
-                            <span class="form-hint" data-i18n="extra_args_hint">ⓘ Additional command line arguments (e.g. --seq-mode 4).</span>
+                            <input type="text" class="form-control" id="editExtraArgs" placeholder="--lower-level auto">
+                            <span class="form-hint" data-i18n="extra_args_hint">ⓘ Additional command line arguments (e.g. --lower-level auto).</span>
                         </div>
                     </div>
                 </div>
@@ -519,23 +506,8 @@
                                 </tr>
                             </thead>
                             <tbody id="diagTunnelBody">
-                                <tr>
-                                    <td>New Server</td>
-                                    <td data-i18n="server">Server</td>
-                                    <td><span class="status-text running" data-i18n="running">Running</span></td>
-                                    <td>0.0.0.0:29900</td>
-                                    <td>127.0.0.1:51820</td>
-                                    <td>faketcp / xor</td>
-                                    <td>11</td>
-                                </tr>
-                                <tr>
-                                    <td>New Client</td>
-                                    <td data-i18n="client">Client</td>
-                                    <td><span class="status-text running" data-i18n="running">Running</span></td>
-                                    <td>127.0.0.1:3333</td>
-                                    <td>10.10.10.1:29900</td>
-                                    <td>faketcp / xor</td>
-                                    <td>13</td>
+                                <tr class="empty-row">
+                                    <td colspan="7" data-i18n="no_tunnels">No tunnels configured.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -548,18 +520,16 @@
                     <div class="diag-grid">
                         <div class="diag-row">
                             <span class="diag-label" data-i18n="core_binary">Core Binary:</span>
-                            <span class="diag-value">
-                                <span class="status-icon success">✓</span>
-                                <span>Verified</span>
-                                <span class="diag-hash">(b454317fe1)</span>
+                            <span class="diag-value" id="diagBinary">
+                                <span class="status-icon">⏳</span>
+                                <span data-i18n="loading">Loading...</span>
                             </span>
                         </div>
                         <div class="diag-row">
                             <span class="diag-label" data-i18n="iptables_rules">Iptables Rules:</span>
-                            <span class="diag-value">
-                                <span class="status-icon success">✓</span>
-                                <span data-i18n="active">Active:</span>
-                                <span class="diag-code">udp2rawOwrW_b3af82d7_C0</span>
+                            <span class="diag-value" id="diagIptables">
+                                <span class="status-icon">⏳</span>
+                                <span data-i18n="loading">Loading...</span>
                             </span>
                         </div>
                     </div>
@@ -569,7 +539,7 @@
                 <div class="diag-section">
                     <div class="diag-section-header">
                         <div class="diag-section-title" data-i18n="recent_logs">Recent Logs</div>
-                        <div class="diag-timestamp"><span data-i18n="last_updated">Last updated:</span> <span id="logTimestamp">2:07:09 AM</span></div>
+                        <div class="diag-timestamp"><span data-i18n="last_updated">Last updated:</span> <span id="logTimestamp">--:--:--</span></div>
                     </div>
                     <div class="log-container">
                         <pre class="log-content" id="logContent"><span class="log-line" data-i18n="loading_logs">Loading logs...</span></pre>
@@ -586,141 +556,5 @@
     <!-- Scripts -->
     <script src="/static/js/i18n.js"></script>
     <script src="/static/js/app.js"></script>
-    <!-- 需要剥离至/static/js/app.js 中
-    <script>
-        // Dropdown toggle
-        function toggleDropdown(id) {
-            const dropdown = document.getElementById(id);
-            document.querySelectorAll('.icon-dropdown').forEach(d => {
-                if (d.id !== id) d.classList.remove('open');
-            });
-            dropdown.classList.toggle('open');
-        }
-
-        // Close dropdowns when clicking outside
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.icon-dropdown')) {
-                document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
-            }
-        });
-
-        // Theme toggle
-        function toggleTheme() {
-            const html = document.documentElement;
-            const isDark = html.getAttribute('data-theme') === 'dark';
-            html.setAttribute('data-theme', isDark ? 'light' : 'dark');
-            localStorage.setItem('theme', isDark ? 'light' : 'dark');
-        }
-
-        // Load saved theme
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-
-        // Tab switching
-        document.querySelectorAll('.sub-tab, .modal-tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                const container = this.closest('.section-body, .modal');
-                const targetId = this.getAttribute('data-target');
-                
-                container.querySelectorAll('.sub-tab, .modal-tab').forEach(t => t.classList.remove('active'));
-                container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                this.classList.add('active');
-                const targetEl = document.getElementById(targetId);
-                if (targetEl) targetEl.classList.add('active');
-            });
-        });
-
-        // Modal functions
-        function openDiagModal() {
-            document.getElementById('diagModal').classList.add('show');
-        }
-
-        function openEditModal(type, index) {
-            const modal = document.getElementById('editModal');
-            const titleEl = document.getElementById('editModalTitle');
-            
-            // Show/hide fields based on type
-            document.querySelectorAll('.server-field').forEach(el => {
-                el.style.display = type === 'server' ? '' : 'none';
-            });
-            document.querySelectorAll('.client-field').forEach(el => {
-                el.style.display = type === 'client' ? '' : 'none';
-            });
-            
-            // Set title
-            if (type === 'server') {
-                titleEl.setAttribute('data-i18n', 'new_server');
-                titleEl.textContent = I18n.t('new_server');
-            } else {
-                titleEl.setAttribute('data-i18n', 'new_client');
-                titleEl.textContent = I18n.t('new_client');
-            }
-            
-            modal.classList.add('show');
-        }
-
-        function openAddModal(type) {
-            openEditModal(type, -1);
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.remove('show');
-        }
-
-        // Password toggle
-        function togglePassword(inputId, btn) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.textContent = '🔒';
-            } else {
-                input.type = 'password';
-                btn.textContent = '👁';
-            }
-        }
-
-        // Placeholder functions
-        function saveAndApply() {
-            alert(I18n.t('config_saved'));
-        }
-
-        function saveOnly() {
-            alert(I18n.t('config_saved_only'));
-        }
-
-        function resetConfig() {
-            location.reload();
-        }
-
-        function saveModalData() {
-            closeModal('editModal');
-        }
-
-        function deleteInstance(type, index) {
-            if (confirm(I18n.t('confirm_delete'))) {
-                console.log('Delete', type, index);
-            }
-        }
-
-        function refreshLogs() {
-            document.getElementById('logTimestamp').textContent = new Date().toLocaleTimeString();
-        }
-
-        function scrollLogsToBottom() {
-            const logContainer = document.querySelector('.log-container');
-            logContainer.scrollTop = logContainer.scrollHeight;
-        }
-
-        // Close modal on overlay click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', (e) => {
-                if (e.target === overlay) {
-                    overlay.classList.remove('show');
-                }
-            });
-        });
-    </script>
-    -->
 </body>
 </html>
