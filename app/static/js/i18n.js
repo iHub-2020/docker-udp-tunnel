@@ -73,8 +73,9 @@ const I18n = {
     }
 };
 
-function setLanguage(lang) {
+window.setLanguage = function(lang) {
     I18n.setLanguage(lang);
-}
+};
 
 document.addEventListener('DOMContentLoaded', () => I18n.init());
+
