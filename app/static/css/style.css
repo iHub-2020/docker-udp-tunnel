@@ -823,6 +823,23 @@ body {
     color: var(--success);
 }
 
+/* Identifier for multiple iptables chains */
+.identifier {
+    display: inline-block;
+    font-size: 11px;
+    font-family: monospace;
+    background: var(--bg-input);
+    padding: 2px 6px;
+    margin: 2px 4px 2px 0;
+    border-radius: 3px;
+    color: var(--success);
+    word-break: break-all;
+}
+
+.diag-value .identifier:last-child {
+    margin-right: 0;
+}
+
 .diag-grid {
     display: flex;
     flex-direction: column;
@@ -922,3 +939,4 @@ body {
     .log-actions { flex-direction: column; }
     .log-actions .btn { width: 100%; }
 }
+
