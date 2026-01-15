@@ -1,12 +1,14 @@
 # ----------------------------------------------------------------------
 # File: app/main.py
 # Author: iHub-2020
-# Date: 2026-01-14
-# Version: 1.4.1
+# Date: 2026-01-15
+# Version: 1.5.0
 # Description: Flask web server entry point with logs and diagnostics API
 # Updated: 
+#   - Fixed diagnostics API to return binary and iptables info separately
 #   - Verified regex for iptables chain matching
 #   - Confirmed dynamic MD5 verification logic
+# GitHub: https://github.com/iHub-2020/docker-udp-tunnel
 # ----------------------------------------------------------------------
 from flask import Flask, render_template, jsonify, request
 from app.config_manager import ConfigManager
@@ -270,3 +272,4 @@ def health_check():
 if __name__ == '__main__':
     # 注意：在生产环境中通常由 Gunicorn 启动，这里仅用于开发调试
     app.run(host='0.0.0.0', port=5000, debug=True)
+
