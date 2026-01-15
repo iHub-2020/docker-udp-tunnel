@@ -1,16 +1,13 @@
 /*
  * File: app/static/js/app.js
  * Author: iHub-2020
- * Date: 2026-01-14
- * Version: 3.1.0
- * Description: Frontend logic for UDP Tunnel Manager - Fixed all element ID mismatches
+ * Date: 2026-01-15
+ * Version: 3.2.0
+ * Description: Frontend logic for UDP Tunnel Manager
  * Changes: 
- *   - ✅ Fixed all element IDs to match index.html
- *   - ✅ Fixed modal field IDs (edit* prefix)
- *   - ✅ Fixed table body IDs
- *   - ✅ Fixed diagnostics modal IDs
- *   - ✅ Fixed tab switching logic
- *   - ✅ Improved error handling
+ *   - ✅ Fixed iptables rules display (show all chains, not just first)
+ *   - ✅ Removed duplicate setLanguage (moved to i18n.js)
+ *   - ✅ Improved diagnostics rendering
  */
 
 (function() {
@@ -386,14 +383,18 @@
             }
         }
         
-        // 🟢 Update Iptables Status
+        // 🟢 Update Iptables Status - ✅ FIXED: Show all chains
         const iptablesEl = getEl('diagIptables');
         if (iptablesEl && status.iptables) {
             if (status.iptables.present && status.iptables.chains && status.iptables.chains.length > 0) {
+                const chainList = status.iptables.chains.map(chain => 
+                    `<span class="diag-code">${escapeHtml(chain)}</span>`
+                ).join(' ');
+                
                 iptablesEl.innerHTML = `
                     <span class="status-icon success">✓</span>
                     <span>${escapeHtml(status.iptables.text)}</span>
-                    <span class="diag-code">${escapeHtml(status.iptables.chains[0])}</span>
+                    <div class="diag-chains">${chainList}</div>
                 `;
             } else {
                 iptablesEl.innerHTML = `
@@ -1042,4 +1043,5 @@
     window.config = config;
 
 })();
+
 
