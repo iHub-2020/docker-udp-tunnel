@@ -129,10 +129,8 @@
   
   "config_saved": "配置已保存并应用！",
   "config_saved_only": "配置已保存（未应用）。",
-  "confirm_delete": "确定要删除此实例吗？"
-}
-
-{
+  "confirm_delete": "确定要删除此实例吗？",
+  
   "login_title": "UDP 隧道管理器",
   "login_subtitle": "请登录以继续",
   "login_error": "密码错误，请重试",
