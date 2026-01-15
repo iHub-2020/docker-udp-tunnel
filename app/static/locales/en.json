@@ -131,3 +131,12 @@
   "config_saved_only": "Configuration saved (not applied).",
   "confirm_delete": "Are you sure you want to delete this instance?"
 }
+
+{
+  "login_title": "UDP Tunnel Manager",
+  "login_subtitle": "Please login to continue",
+  "login_error": "Invalid password. Please try again.",
+  "login_button": "Login",
+  "login_footer": "Set password via WEB_PASSWORD environment variable",
+  "enter_password": "Enter password"
+}
