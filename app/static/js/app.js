@@ -553,12 +553,7 @@
     /**
      * Set language (for i18n.js)
      */
-    window.setLanguage = function(lang) {
-        if (window.I18n && window.I18n.setLanguage) {
-            window.I18n.setLanguage(lang);
-            window.toggleDropdown('langDropdown'); // Close dropdown
-        }
-    };
+   // ✅ REMOVED: window.setLanguage (now in i18n.js)
 
     /**
      * Open diagnostics modal
@@ -1043,5 +1038,6 @@
     window.config = config;
 
 })();
+
 
 
