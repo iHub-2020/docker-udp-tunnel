@@ -1,0 +1,53 @@
+<!--
+ * File: app/templates/login.html
+ * Author: iHub-2020
+ * Date: 2026-01-15
+ * Version: 1.0.0
+ * Description: Login page for UDP Tunnel Manager
+ * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
+-->
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - UDP Tunnel Manager</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="login-logo">🔐</div>
+                <h1 class="login-title" data-i18n="login_title">UDP Tunnel Manager</h1>
+                <p class="login-subtitle" data-i18n="login_subtitle">Please login to continue</p>
+            </div>
+            
+            <form class="login-form" method="POST" action="/login">
+                {% if error %}
+                <div class="login-error" data-i18n="login_error">{{ error }}</div>
+                {% endif %}
+                
+                <div class="form-row">
+                    <label class="form-label" data-i18n="password">Password</label>
+                    <input type="password" name="password" class="form-control" required autofocus 
+                           placeholder="Enter password" data-i18n-placeholder="enter_password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary login-btn" data-i18n="login_button">Login</button>
+            </form>
+            
+            <div class="login-footer">
+                <p data-i18n="login_footer">Set password via <code>WEB_PASSWORD</code> environment variable</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/js/i18n.js"></script>
+    <script>
+        // Apply saved theme
+        const savedTheme = localStorage.getItem('udp_tunnel_theme') || 'dark';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+    </script>
+</body>
+</html>
