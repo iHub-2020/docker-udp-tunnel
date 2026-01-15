@@ -1,9 +1,13 @@
 /*
  * File: app/static/js/i18n.js
  * Author: iHub-2020
- * Date: 2026-01-14
- * Version: 1.0.1
+ * Date: 2026-01-15
+ * Version: 1.1.0
  * Description: Internationalization module for UDP Tunnel Manager
+ * Updated:
+ *   - Fixed async initialization race condition
+ *   - Added safe setLanguage wrapper
+ *   - Ensured I18n is ready before accepting language changes
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
  */
 
@@ -11,6 +15,7 @@ const I18n = {
     currentLang: 'en',
     translations: {},
     fallback: {},
+    isReady: false,
     
     async init() {
         // Load English as fallback first
@@ -18,6 +23,9 @@ const I18n = {
         
         const savedLang = localStorage.getItem('language') || 'en';
         await this.setLanguage(savedLang);
+        
+        this.isReady = true;
+        console.log(`I18n initialized with language: ${savedLang}`);
     },
     
     async loadLanguage(lang) {
@@ -39,6 +47,9 @@ const I18n = {
             localStorage.setItem('language', lang);
             this.updatePage();
             document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+            console.log(`Language switched to: ${lang}`);
+        } else {
+            console.error(`Failed to load translations for: ${lang}`);
         }
     },
     
@@ -73,9 +84,20 @@ const I18n = {
     }
 };
 
+// ✅ Safe global setLanguage wrapper
 window.setLanguage = function(lang) {
-    I18n.setLanguage(lang);
+    if (I18n.isReady) {
+        I18n.setLanguage(lang);
+    } else {
+        console.warn('I18n not ready yet, queuing language change...');
+        // Wait for I18n to be ready, then switch
+        const checkReady = setInterval(() => {
+            if (I18n.isReady) {
+                clearInterval(checkReady);
+                I18n.setLanguage(lang);
+            }
+        }, 100);
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => I18n.init());
-
