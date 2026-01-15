@@ -32,6 +32,8 @@ services:
       
     environment:
       - FLASK_ENV=production
+      - WEB_PASSWORD=your_secure_password_here  # 🟢 Set your password
+      - SECRET_KEY=your_secret_key_here  # 🟢 Flask session secret
       # [HTTPS 开关]
       # true:  开启 HTTPS (自动生成自签名证书或使用挂载证书)
       # false: 开启 HTTP (默认，适合配合 Nginx 反代使用)
@@ -52,3 +54,4 @@ services:
       retries: 3
 
       start_period: 10s
+
