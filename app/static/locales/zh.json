@@ -11,8 +11,8 @@
   "safety_title": "重要安全提示",
   "safety_faketcp": "FakeTCP 模式<strong>必须</strong>使用 iptables 规则阻止内核发送 TCP RST 包。",
   "safety_openwrt": "在 OpenWrt 上，当网络设置更改时，iptables 规则可能会被<strong>清空</strong>。",
-  "safety_recommend": "<strong>强烈建议</strong>在 OpenWrt 上启用"保持 Iptables 规则"选项。",
-  "safety_server": "服务端模式：您<strong>必须</strong>指定"转发到"地址（通常为 127.0.0.1）。",
+  "safety_recommend": "<strong>强烈建议</strong>在 OpenWrt 上启用\"保持 Iptables 规则\"选项。",
+  "safety_server": "服务端模式：您<strong>必须</strong>指定\"转发到\"地址（通常为 127.0.0.1）。",
   
   "global_settings": "全局设置",
   "global_settings_desc": "udp2raw 守护进程的全局配置。",
