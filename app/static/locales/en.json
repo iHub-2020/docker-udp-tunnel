@@ -129,10 +129,8 @@
   
   "config_saved": "Configuration saved and applied successfully!",
   "config_saved_only": "Configuration saved (not applied).",
-  "confirm_delete": "Are you sure you want to delete this instance?"
-}
-
-{
+  "confirm_delete": "Are you sure you want to delete this instance?",
+  
   "login_title": "UDP Tunnel Manager",
   "login_subtitle": "Please login to continue",
   "login_error": "Invalid password. Please try again.",
