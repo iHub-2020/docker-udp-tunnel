@@ -1,11 +1,15 @@
 # ----------------------------------------------------------------------
 # File: app/config_manager.py
 # Author: iHub-2020
-# Date: 2026-01-13
-# Version: 1.1.0
+# Date: 2026-01-16
+# Version: 1.2.0
 # Description: Handles reading and writing JSON configuration
-# Updated: Added new fields for LuCI compatibility (listen_ip, local_ip,
-#          source_ip, source_port, seq_mode, wait_lock, theme)
+# Updated: 
+#   - Added new fields for LuCI compatibility (listen_ip, local_ip,
+#     source_ip, source_port, seq_mode, wait_lock, theme)
+#   - Added advanced parameters: lower_level, dev, disable_anti_replay, 
+#     disable_bpf
+#   - Changed extra_args default from "" to []
 # ----------------------------------------------------------------------
 import json
 import os
@@ -81,7 +85,11 @@ class ConfigManager:
             "cipher_mode": "xor",
             "auth_mode": "simple",
             "auto_iptables": True,
-            "extra_args": []  # ← 改这里：从 "" 改成 []
+            "lower_level": "",
+            "dev": "",
+            "disable_anti_replay": False,
+            "disable_bpf": False,
+            "extra_args": []
         }
 
     def _get_client_template(self):
@@ -101,7 +109,11 @@ class ConfigManager:
             "source_ip": "",
             "source_port": "",
             "seq_mode": 3,
-             "extra_args": []  # ← 改这里：从 "" 改成 []
+            "lower_level": "",
+            "dev": "",
+            "disable_anti_replay": False,
+            "disable_bpf": False,
+            "extra_args": []
         }
 
     def get_default_config(self):
