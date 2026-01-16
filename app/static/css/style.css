@@ -528,6 +528,8 @@ body {
 .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
 .btn-outline:hover:not(:disabled) { background: var(--bg-hover); }
 .btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-danger {background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; border: none;}
+.btn-danger:hover {background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);transform: translateY(-1px);box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);}
 
 .btn-add {
     display: flex;
@@ -1027,3 +1029,4 @@ body {
     font-size: 12px;
     color: var(--text-secondary);
 }
+
