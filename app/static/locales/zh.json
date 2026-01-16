@@ -138,7 +138,17 @@
   "login_footer": "通过 WEB_PASSWORD 环境变量设置密码",
   "enter_password": "请输入密码",
   "start_service": "启动进程",
-  "stop_service": "停止进程"
+  "stop_service": "停止进程",
+  
+  "lower_level": "底层发包 (--lower-level)",
+  "lower_level_hint": "ⓘ 在 OSI 2 层发送数据包。使用 'auto' 或 '网卡名#MAC地址'。留空则禁用。",
+  "dev": "绑定设备 (--dev)",
+  "dev_hint": "ⓘ 将 raw socket 绑定到指定网卡。留空则自动选择。",
+  "disable_anti_replay": "禁用防重放",
+  "disable_anti_replay_hint": "⚠ 不推荐。禁用重放攻击保护。",
+  "disable_bpf": "禁用 BPF 过滤器",
+  "disable_bpf_hint": "ⓘ 禁用内核空间的 BPF 过滤器。仅在怀疑有 bug 时使用。"
 }
+
 
 
