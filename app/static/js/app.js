@@ -244,19 +244,7 @@
                 countEl.textContent = `(${activeCount} tunnels active)`;
             }
         }
-
-        // 🟢 Update service toggle button
-        const toggleBtn = getEl('serviceToggleBtn');
-        if (toggleBtn) {
-            if (isRunning) {
-                toggleBtn.className = 'btn btn-danger';
-                toggleBtn.innerHTML = '<span data-i18n="stop_service">Stop Service</span>';
-            } else {
-                toggleBtn.className = 'btn btn-success';
-                toggleBtn.innerHTML = '<span data-i18n="start_service">Start Service</span>';
-            }
-        }
-
+        
         // Update status tables
         updateStatusTables(tunnels);
     }
@@ -688,45 +676,14 @@
     };
 
     /**
-     * Toggle service (start/stop)
+     * Reset configuration to last saved state
      */
-    window.toggleService = async function() {
-        const btn = getEl('serviceToggleBtn');
-        if (!btn) return;
-        
-        // Get current status
-        const statusBadge = getEl('serviceStatus');
-        const isRunning = statusBadge && statusBadge.classList.contains('running');
-        
-        const action = isRunning ? 'stop' : 'start';
-        const endpoint = `/api/service/${action}`;
-        
-        // Disable button during request
-        btn.disabled = true;
-        btn.textContent = isRunning ? 'Stopping...' : 'Starting...';
-        
-        try {
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' }
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
-                console.log(`Service ${action} successful`);
-                // Reload config and status
-                await loadConfig();
-                await loadStatus();
-            } else {
-                throw new Error(data.message || `Failed to ${action} service`);
-            }
-            
-        } catch (error) {
-            console.error(`Service ${action} error:`, error);
-            alert(`Failed to ${action} service: ` + error.message);
-        } finally {
-            btn.disabled = false;
+    window.resetConfig = function() {
+        if (originalConfig && confirm('Discard all unsaved changes?')) {
+            config = JSON.parse(JSON.stringify(originalConfig));
+            applyConfigToUI();
+            renderServerTable();
+            renderClientTable();
         }
     };
 
@@ -1081,7 +1038,5 @@
     window.config = config;
 
 })();
-
-
 
 
