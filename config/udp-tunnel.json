@@ -20,6 +20,10 @@
             "cipher_mode": "xor",
             "auth_mode": "simple",
             "auto_iptables": true,
+            "lower_level": "",
+            "dev": "",
+            "disable_anti_replay": false,
+            "disable_bpf": false,
             "extra_args": []
         }
     ],
@@ -39,8 +43,11 @@
             "source_ip": "",
             "source_port": "",
             "seq_mode": 3,
+            "lower_level": "",
+            "dev": "",
+            "disable_anti_replay": false,
+            "disable_bpf": false,
             "extra_args": []
         }
     ]
-
 }
