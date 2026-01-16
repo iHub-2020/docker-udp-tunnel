@@ -17,13 +17,9 @@
             "forward_port": 51820,
             "password": "your_password",
             "raw_mode": "faketcp",
-            "cipher_mode": "xor",
-            "auth_mode": "simple",
+            "cipher_mode": "aes128cbc",
+            "auth_mode": "md5",
             "auto_iptables": true,
-            "lower_level": "",
-            "dev": "",
-            "disable_anti_replay": false,
-            "disable_bpf": false,
             "extra_args": []
         }
     ],
@@ -37,16 +33,12 @@
             "local_port": 3333,
             "password": "your_password",
             "raw_mode": "faketcp",
-            "cipher_mode": "xor",
-            "auth_mode": "simple",
+            "cipher_mode": "aes128cbc",
+            "auth_mode": "md5",
             "auto_iptables": true,
             "source_ip": "",
             "source_port": "",
             "seq_mode": 3,
-            "lower_level": "",
-            "dev": "",
-            "disable_anti_replay": false,
-            "disable_bpf": false,
             "extra_args": []
         }
     ]
