@@ -1,13 +1,13 @@
 /*
  * File: app/static/js/app.js
  * Author: iHub-2020
- * Date: 2026-01-15
- * Version: 3.2.0
+ * Date: 2026-01-16
+ * Version: 3.3.0
  * Description: Frontend logic for UDP Tunnel Manager
  * Changes: 
- *   - ✅ Fixed iptables rules display (show all chains, not just first)
- *   - ✅ Removed duplicate setLanguage (moved to i18n.js)
- *   - ✅ Improved diagnostics rendering
+ *   - ✅ Changed extra_args from single-line input to DynamicList (multi-line)
+ *   - ✅ Added addExtraArg() and removeExtraArg() functions
+ *   - ✅ Updated openAddModal(), openEditModal(), saveModalData() to handle array format
  */
 
 (function() {
@@ -198,7 +198,6 @@
      * Apply loaded config to UI elements
      */
     function applyConfigToUI() {
-        // Fixed IDs to match HTML
         setCheck('enableService', config.global.enabled);
         setCheck('keepIptables', config.global.keep_iptables);
         setCheck('waitIptables', config.global.wait_lock);
@@ -210,7 +209,6 @@
      * Collect config from UI elements
      */
     function collectConfigFromUI() {
-        // Fixed IDs to match HTML
         config.global.enabled = getCheck('enableService');
         config.global.keep_iptables = getCheck('keepIptables');
         config.global.wait_lock = getCheck('waitIptables');
@@ -226,17 +224,14 @@
         const activeCount = tunnels.filter(t => t.running).length;
         const isRunning = activeCount > 0;
         
-        // Update status badge (Fixed ID)
         const badge = getEl('serviceStatus');
         if (badge) {
             badge.textContent = isRunning ? 'Running' : 'Stopped';
             badge.className = 'status-badge ' + (isRunning ? 'running' : 'stopped');
         }
         
-        // Update tunnel count (Fixed ID)
         const countEl = getEl('tunnelCount');
         if (countEl) {
-            // Update only the number, preserve the translated text
             const tunnelsText = countEl.querySelector('[data-i18n="tunnels_active"]');
             if (tunnelsText) {
                 countEl.innerHTML = `(${activeCount} <span data-i18n="tunnels_active">${tunnelsText.textContent}</span>)`;
@@ -245,7 +240,6 @@
             }
         }
         
-        // Update status tables
         updateStatusTables(tunnels);
     }
 
@@ -253,7 +247,6 @@
      * Update server and client status tables
      */
     function updateStatusTables(tunnels) {
-        // Server status table (Fixed ID)
         const serverBody = getEl('serverStatusBody');
         if (serverBody) {
             serverBody.innerHTML = '';
@@ -279,7 +272,6 @@
             }
         }
         
-        // Client status table (Fixed ID)
         const clientBody = getEl('clientStatusBody');
         if (clientBody) {
             clientBody.innerHTML = '';
@@ -312,14 +304,12 @@
     function updateDiagnosticsDisplay(status, logs) {
         const tunnels = status.tunnels || [];
         
-        // Tunnel table
         const table = getEl('diagTunnelTable');
         let tunnelBody = table ? table.querySelector('tbody') : getEl('diagTunnelBody');
         
         if (tunnelBody) {
             tunnelBody.innerHTML = '';
             
-            // Render servers
             config.servers.forEach((server, index) => {
                 const id = `server_${index}`;
                 const st = tunnels.find(t => t.id === id) || {};
@@ -340,7 +330,6 @@
                 tunnelBody.innerHTML += row;
             });
             
-            // Render clients
             config.clients.forEach((client, index) => {
                 const id = `client_${index}`;
                 const st = tunnels.find(t => t.id === id) || {};
@@ -366,7 +355,6 @@
             }
         }
         
-        // 🟢 Update Binary Status
         const binaryEl = getEl('diagBinary');
         if (binaryEl && status.binary) {
             if (status.binary.installed) {
@@ -383,7 +371,6 @@
             }
         }
         
-        // 🟢 Update Iptables Status - ✅ FIXED: Show all chains
         const iptablesEl = getEl('diagIptables');
         if (iptablesEl && status.iptables) {
             if (status.iptables.present && status.iptables.chains && status.iptables.chains.length > 0) {
@@ -404,7 +391,6 @@
             }
         }
         
-        // Update Logs
         let logLines = [];
         if (logs.logs && typeof logs.logs === 'string') {
             logLines = logs.logs.split('\n').filter(l => l.trim());
@@ -420,14 +406,12 @@
                 logContent.innerHTML = '<span class="log-line" data-i18n="no_logs">No recent logs.</span>';
             }
             
-            // Auto scroll to bottom
             const logContainer = getElBySelector('.log-container');
             if (logContainer) {
                 logContainer.scrollTop = logContainer.scrollHeight;
             }
         }
         
-        // Update timestamp
         const timestamp = getEl('logTimestamp');
         if (timestamp) {
             timestamp.textContent = new Date().toLocaleTimeString();
@@ -446,7 +430,7 @@
      * Render server configuration table
      */
     function renderServerTable() {
-        const tbody = getEl('serverTableBody'); // Fixed ID
+        const tbody = getEl('serverTableBody');
         if (!tbody) {
             console.error('Server table body not found');
             return;
@@ -485,7 +469,7 @@
      * Render client configuration table
      */
     function renderClientTable() {
-        const tbody = getEl('clientTableBody'); // Fixed ID
+        const tbody = getEl('clientTableBody');
         if (!tbody) {
             console.error('Client table body not found');
             return;
@@ -520,6 +504,102 @@
         });
     }
 
+    // ==================== Extra Args DynamicList Functions ====================
+
+    /**
+     * Add a new extra argument input line
+     */
+    window.addExtraArg = function(value = '') {
+        const container = getEl('extraArgsList');
+        if (!container) {
+            console.error('extraArgsList container not found');
+            return;
+        }
+        
+        const index = container.children.length;
+        const div = document.createElement('div');
+        div.className = 'extra-arg-item';
+        div.setAttribute('data-index', index);
+        
+        div.innerHTML = `
+            <input type="text" 
+                   class="extra-arg-input" 
+                   placeholder="--lower-level auto" 
+                   value="${escapeHtml(value)}">
+            <button type="button" class="btn-remove" onclick="removeExtraArg(${index})">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        `;
+        
+        container.appendChild(div);
+    };
+
+    /**
+     * Remove an extra argument line
+     */
+    window.removeExtraArg = function(index) {
+        const container = getEl('extraArgsList');
+        if (!container) return;
+        
+        const item = container.querySelector(`[data-index="${index}"]`);
+        if (item) {
+            item.remove();
+            
+            // Reindex remaining items
+            Array.from(container.children).forEach((child, newIndex) => {
+                child.setAttribute('data-index', newIndex);
+                const btn = child.querySelector('.btn-remove');
+                if (btn) {
+                    btn.setAttribute('onclick', `removeExtraArg(${newIndex})`);
+                }
+            });
+        }
+    };
+
+    /**
+     * Get all extra args as array
+     */
+    function getExtraArgs() {
+        const container = getEl('extraArgsList');
+        if (!container) return [];
+        
+        const inputs = container.querySelectorAll('.extra-arg-input');
+        const args = [];
+        
+        inputs.forEach(input => {
+            const value = input.value.trim();
+            if (value) {
+                args.push(value);
+            }
+        });
+        
+        return args;
+    }
+
+    /**
+     * Set extra args from array
+     */
+    function setExtraArgs(args) {
+        const container = getEl('extraArgsList');
+        if (!container) return;
+        
+        // Clear existing
+        container.innerHTML = '';
+        
+        // Add items
+        if (Array.isArray(args) && args.length > 0) {
+            args.forEach(arg => {
+                window.addExtraArg(arg);
+            });
+        } else {
+            // Add one empty line for new instances
+            window.addExtraArg('');
+        }
+    }
+
     // ==================== Global Window Functions ====================
 
     /**
@@ -541,7 +621,6 @@
      */
     window.toggleDropdown = function(id) {
         const dropdown = getEl(id);
-        // Close other dropdowns
         document.querySelectorAll('.icon-dropdown').forEach(d => {
             if (d.id !== id) d.classList.remove('open');
         });
@@ -551,20 +630,14 @@
     };
 
     /**
-     * Set language (for i18n.js)
-     */
-   // ✅ REMOVED: window.setLanguage (now in i18n.js)
-
-    /**
      * Open diagnostics modal
      */
     window.openDiagModal = function() {
-        const modal = getEl('diagModal'); // Fixed ID
+        const modal = getEl('diagModal');
         if (modal) {
             modal.classList.add('show');
             loadDiagnostics();
             
-            // Auto-refresh every 3 seconds
             if (diagAutoRefresh) {
                 clearInterval(diagAutoRefresh);
             }
@@ -578,7 +651,7 @@
      * Close diagnostics modal
      */
     window.closeDiagModal = function() {
-        const modal = getEl('diagModal'); // Fixed ID
+        const modal = getEl('diagModal');
         if (modal) {
             modal.classList.remove('show');
         }
@@ -598,7 +671,6 @@
             modal.classList.remove('show');
         }
         
-        // If it's diag modal, stop refresh
         if (id === 'diagModal' && diagAutoRefresh) {
             clearInterval(diagAutoRefresh);
             diagAutoRefresh = null;
@@ -695,7 +767,6 @@
         
         modalState = { type, mode: 'add', index: -1 };
         
-        // Set title (Fixed ID)
         const titleEl = getEl('editModalTitle');
         if (titleEl) {
             if (type === 'server') {
@@ -707,7 +778,6 @@
             }
         }
         
-        // Show/hide appropriate fields using class selectors
         document.querySelectorAll('.server-field').forEach(el => {
             el.style.display = type === 'server' ? '' : 'none';
         });
@@ -715,7 +785,6 @@
             el.style.display = type === 'client' ? '' : 'none';
         });
         
-        // Reset form to defaults (Fixed IDs with 'edit' prefix)
         setCheck('editEnable', true);
         setVal('editAlias', type === 'server' ? 'New Server' : 'New Client');
         setVal('editPassword', '');
@@ -723,10 +792,12 @@
         setVal('editCipherMode', 'xor');
         setVal('editAuthMode', 'simple');
         setCheck('editAutoIptables', true);
-        setVal('editExtraArgs', '');
         setVal('editSourceIp', '');
         setVal('editSourcePort', '');
         setVal('editSeqMode', '3');
+        
+        // Initialize extra args with one empty line
+        setExtraArgs([]);
         
         if (type === 'server') {
             setVal('editWanAddress', '0.0.0.0');
@@ -740,18 +811,15 @@
             setVal('editLocalPort', '3333');
         }
         
-        // Switch to basic tab (Fixed IDs)
         const basicTab = getEl('basicTab');
         const advancedTab = getEl('advancedTab');
         if (basicTab) basicTab.classList.add('active');
         if (advancedTab) advancedTab.classList.remove('active');
         
-        // Update tab buttons
         document.querySelectorAll('.modal-tab').forEach(tab => {
             tab.classList.toggle('active', tab.getAttribute('data-target') === 'basicTab');
         });
         
-        // Show modal (Fixed ID)
         const modal = getEl('editModal');
         if (modal) {
             modal.classList.add('show');
@@ -774,13 +842,11 @@
             return;
         }
         
-        // Set title (Fixed ID)
         const titleEl = getEl('editModalTitle');
         if (titleEl) {
             titleEl.textContent = item.alias || (type === 'server' ? 'Server' : 'Client');
         }
         
-        // Show/hide appropriate fields
         document.querySelectorAll('.server-field').forEach(el => {
             el.style.display = type === 'server' ? '' : 'none';
         });
@@ -788,7 +854,6 @@
             el.style.display = type === 'client' ? '' : 'none';
         });
         
-        // Populate form with existing values (Fixed IDs with 'edit' prefix)
         setCheck('editEnable', item.enabled !== false);
         setVal('editAlias', item.alias || '');
         setVal('editPassword', item.password || '');
@@ -796,10 +861,17 @@
         setVal('editCipherMode', item.cipher_mode || 'xor');
         setVal('editAuthMode', item.auth_mode || 'simple');
         setCheck('editAutoIptables', item.auto_iptables !== false);
-        setVal('editExtraArgs', item.extra_args || '');
         setVal('editSourceIp', item.source_ip || '');
         setVal('editSourcePort', item.source_port || '');
         setVal('editSeqMode', item.seq_mode || '3');
+        
+        // Load extra args (support both array and string for backward compatibility)
+        let extraArgs = item.extra_args || [];
+        if (typeof extraArgs === 'string') {
+            // Convert old string format to array
+            extraArgs = extraArgs.trim() ? extraArgs.split(/\s+/) : [];
+        }
+        setExtraArgs(extraArgs);
         
         if (type === 'server') {
             setVal('editWanAddress', item.listen_ip || '0.0.0.0');
@@ -813,18 +885,15 @@
             setVal('editLocalPort', item.local_port || '3333');
         }
         
-        // Switch to basic tab (Fixed IDs)
         const basicTab = getEl('basicTab');
         const advancedTab = getEl('advancedTab');
         if (basicTab) basicTab.classList.add('active');
         if (advancedTab) advancedTab.classList.remove('active');
         
-        // Update tab buttons
         document.querySelectorAll('.modal-tab').forEach(tab => {
             tab.classList.toggle('active', tab.getAttribute('data-target') === 'basicTab');
         });
         
-        // Show modal (Fixed ID)
         const modal = getEl('editModal');
         if (modal) {
             modal.classList.add('show');
@@ -839,7 +908,6 @@
         
         const isServer = modalState.type === 'server';
         
-        // Validation (Fixed IDs with 'edit' prefix)
         if (isServer) {
             if (!getVal('editForwardIp')) {
                 alert('Forward To IP is required for server instances.');
@@ -852,7 +920,6 @@
             }
         }
         
-        // Build item object (Fixed IDs with 'edit' prefix)
         const item = {
             enabled: getCheck('editEnable'),
             alias: getVal('editAlias'),
@@ -861,7 +928,7 @@
             cipher_mode: getVal('editCipherMode'),
             auth_mode: getVal('editAuthMode'),
             auto_iptables: getCheck('editAutoIptables'),
-            extra_args: getVal('editExtraArgs')
+            extra_args: getExtraArgs()  // ✅ Now returns array instead of string
         };
         
         if (isServer) {
@@ -880,7 +947,6 @@
             item.seq_mode = parseInt(getVal('editSeqMode')) || 3;
         }
         
-        // Add or update
         if (modalState.mode === 'add') {
             if (isServer) {
                 config.servers.push(item);
@@ -895,7 +961,6 @@
             }
         }
         
-        // Close modal and refresh tables (Fixed ID)
         window.closeModal('editModal');
         renderServerTable();
         renderClientTable();
@@ -925,7 +990,7 @@
     };
 
     /**
-     * Toggle password visibility (Fixed ID)
+     * Toggle password visibility
      */
     window.togglePassword = function(inputId, btn) {
         const input = getEl(inputId);
@@ -948,50 +1013,41 @@
     function init() {
         console.log('UDP Tunnel Manager - Initializing...');
         
-        // Set theme (Fixed: use data-theme on documentElement)
         const savedTheme = localStorage.getItem('udp_tunnel_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
         
-        // Tab switching for sub-tabs (Config/Status tabs)
         document.querySelectorAll('.sub-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const container = this.closest('.section-body');
                 const targetId = this.getAttribute('data-target');
                 
-                // Update tab buttons
                 container.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
                 
-                // Update content
                 container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 const targetEl = getEl(targetId);
                 if (targetEl) targetEl.classList.add('active');
                 
-                // Load status if switching to status tab
                 if (targetId.includes('Status')) {
                     loadStatus();
                 }
             });
         });
         
-        // Tab switching for modal tabs (Basic/Advanced)
         document.querySelectorAll('.modal-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const container = this.closest('.modal');
                 const targetId = this.getAttribute('data-target');
                 
-                // Update tab buttons
                 container.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
                 
-                // Update content
                 container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 const targetEl = getEl(targetId);
                 if (targetEl) targetEl.classList.add('active');
             });
         });
         
-        // Modal overlay click handlers (Fixed IDs)
         const editModal = getEl('editModal');
         if (editModal) {
             editModal.addEventListener('click', function(e) {
@@ -1010,33 +1066,26 @@
             });
         }
         
-        // Close dropdowns when clicking outside
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.icon-dropdown')) {
                 document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
             }
         });
         
-        // Initial data load
         loadConfig();
         loadStatus();
         
-        // Auto-refresh status every 5 seconds
         setInterval(loadStatus, 5000);
         
         console.log('UDP Tunnel Manager - Ready');
     }
 
-    // Start when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 
-    // Expose config for inline checkbox handlers
     window.config = config;
 
 })();
-
-
