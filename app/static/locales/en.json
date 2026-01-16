@@ -147,8 +147,13 @@
   "disable_anti_replay": "Disable Anti-Replay",
   "disable_anti_replay_hint": "⚠ Not recommended. Disables replay attack protection.",
   "disable_bpf": "Disable BPF Filter",
-  "disable_bpf_hint": "ⓘ Disable kernel-space BPF filter. Use only if you suspect a bug."
+  "disable_bpf_hint": "ⓘ Disable kernel-space BPF filter. Use only if you suspect a bug.",
+
+  "easy_faketcp": "Easy-FakeTCP",
+  "aes128cfb": "AES-128-CFB",
+  "auth_none": "None (for debugging only)"
 }
+
 
 
 
