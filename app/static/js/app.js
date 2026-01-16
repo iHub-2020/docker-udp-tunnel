@@ -795,6 +795,12 @@
         setVal('editSourceIp', '');
         setVal('editSourcePort', '');
         setVal('editSeqMode', '3');
+
+        // 🆕 添加这 4 行
+        setVal('editLowerLevel', '');
+        setVal('editDev', '');
+        setCheck('editDisableAntiReplay', false);
+        setCheck('editDisableBpf', false);
         
         // Initialize extra args with one empty line
         setExtraArgs([]);
@@ -864,6 +870,12 @@
         setVal('editSourceIp', item.source_ip || '');
         setVal('editSourcePort', item.source_port || '');
         setVal('editSeqMode', item.seq_mode || '3');
+
+        // 🆕 添加这 4 行
+        setVal('editLowerLevel', item.lower_level || '');
+        setVal('editDev', item.dev || '');
+        setCheck('editDisableAntiReplay', item.disable_anti_replay || false);
+        setCheck('editDisableBpf', item.disable_bpf || false);
         
         // Load extra args (support both array and string for backward compatibility)
         let extraArgs = item.extra_args || [];
@@ -928,6 +940,13 @@
             cipher_mode: getVal('editCipherMode'),
             auth_mode: getVal('editAuthMode'),
             auto_iptables: getCheck('editAutoIptables'),
+
+            // 🆕 添加这 4 行
+            lower_level: getVal('editLowerLevel'),
+            dev: getVal('editDev'),
+            disable_anti_replay: getCheck('editDisableAntiReplay'),
+            disable_bpf: getCheck('editDisableBpf'),
+            
             extra_args: getExtraArgs()  // ✅ Now returns array instead of string
         };
         
@@ -1089,3 +1108,4 @@
     window.config = config;
 
 })();
+
