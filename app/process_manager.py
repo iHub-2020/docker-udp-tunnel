@@ -350,10 +350,10 @@ class ProcessManager:
         raw_mode = instance_conf.get('raw_mode', 'faketcp')
         cmd.extend(["--raw-mode", raw_mode])
         
-        cipher_mode = instance_conf.get('cipher_mode', 'xor')
+        cipher_mode = instance_conf.get('cipher_mode', 'aes128cbc')  # ✅ 默认改为 aes128cbc
         cmd.extend(["--cipher-mode", cipher_mode])
         
-        auth_mode = instance_conf.get('auth_mode', 'simple')
+        auth_mode = instance_conf.get('auth_mode', 'md5')  # ✅ 默认改为 md5
         cmd.extend(["--auth-mode", auth_mode])
         
         if instance_conf.get('auto_iptables', True):
@@ -369,18 +369,15 @@ class ProcessManager:
             if seq_mode is not None:
                 cmd.extend(["--seq-mode", str(seq_mode)])
 
-        # 🟡 Common advanced parameters (Server & Client)
-        if instance_conf.get('lower_level'):
-            cmd.extend(["--lower-level", instance_conf['lower_level']])
-            
-        if instance_conf.get('dev'):
-            cmd.extend(["--dev", instance_conf['dev']])
-            
-        if instance_conf.get('disable_anti_replay', False):
-            cmd.append("--disable-anti-replay")
-            
-        if instance_conf.get('disable_bpf', False):
-            cmd.append("--disable-bpf")
+        # ❌ 删除这 4 个字段的处理（现在通过 extra_args 手动输入）
+        # if instance_conf.get('lower_level'):
+        #     cmd.extend(["--lower-level", instance_conf['lower_level']])
+        # if instance_conf.get('dev'):
+        #     cmd.extend(["--dev", instance_conf['dev']])
+        # if instance_conf.get('disable_anti_replay', False):
+        #     cmd.append("--disable-anti-replay")
+        # if instance_conf.get('disable_bpf', False):
+        #     cmd.append("--disable-bpf")
 
         # Global parameters
         if global_conf.get('wait_lock', True):
@@ -448,3 +445,4 @@ class ProcessManager:
             })
 
         return status_list
+
