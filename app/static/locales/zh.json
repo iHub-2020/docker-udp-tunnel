@@ -147,8 +147,13 @@
   "disable_anti_replay": "禁用防重放",
   "disable_anti_replay_hint": "⚠ 不推荐。禁用重放攻击保护。",
   "disable_bpf": "禁用 BPF 过滤器",
-  "disable_bpf_hint": "ⓘ 禁用内核空间的 BPF 过滤器。仅在怀疑有 bug 时使用。"
+  "disable_bpf_hint": "ⓘ 禁用内核空间的 BPF 过滤器。仅在怀疑有 bug 时使用。",
+
+  "easy_faketcp": "Easy-FakeTCP",
+  "aes128cfb": "AES-128-CFB",
+  "auth_none": "无（仅调试）"
 }
+
 
 
 
