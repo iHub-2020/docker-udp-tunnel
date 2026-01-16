@@ -20,7 +20,7 @@
             "cipher_mode": "xor",
             "auth_mode": "simple",
             "auto_iptables": true,
-            "extra_args": ""
+            "extra_args": []
         }
     ],
     "clients": [
@@ -39,7 +39,8 @@
             "source_ip": "",
             "source_port": "",
             "seq_mode": 3,
-            "extra_args": ""
+            "extra_args": []
         }
     ]
+
 }
