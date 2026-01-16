@@ -297,13 +297,15 @@ def clear_logs():
 @app.route('/api/service/start', methods=['POST'])
 @login_required
 def start_service():
-    """Start udp2raw service"""
+    """Start udp2raw processes (like /etc/init.d/udp2raw start)"""
     try:
+        # 读取配置但不修改
         config = config_mgr.load()
-        config['global']['enabled'] = True
-        config_mgr.save(config)
+        
+        # 直接启动进程（相当于 service udp2raw start）
         process_mgr.start_tunnels(config)
-        logger.info("Service started by user")
+        
+        logger.info("Service started manually by user")
         return jsonify({'status': 'success', 'message': 'Service started successfully'})
     except Exception as e:
         logger.error(f"Failed to start service: {e}")
@@ -313,13 +315,12 @@ def start_service():
 @app.route('/api/service/stop', methods=['POST'])
 @login_required
 def stop_service():
-    """Stop udp2raw service"""
+    """Stop all udp2raw processes (like /etc/init.d/udp2raw stop)"""
     try:
-        config = config_mgr.load()
-        config['global']['enabled'] = False
-        config_mgr.save(config)
+        # 只停止进程，不修改配置（相当于 service udp2raw stop）
         process_mgr.stop_all()
-        logger.info("Service stopped by user")
+        
+        logger.info("Service stopped manually by user")
         return jsonify({'status': 'success', 'message': 'Service stopped successfully'})
     except Exception as e:
         logger.error(f"Failed to stop service: {e}")
@@ -333,4 +334,5 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+
 
