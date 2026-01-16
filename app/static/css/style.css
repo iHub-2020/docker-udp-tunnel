@@ -1027,3 +1027,71 @@ body {
     font-size: 12px;
     color: var(--text-secondary);
 }
+
+/* ============================================
+   Dynamic List for Extra Arguments
+   ============================================ */
+.extra-args-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.extra-arg-item {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.extra-arg-item input {
+    flex: 1;
+    padding: 6px 10px;
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius);
+    font-family: "SF Mono", "Monaco", "Consolas", monospace;
+}
+
+.extra-arg-item input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.extra-arg-item .btn-remove {
+    padding: 6px 10px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border-input);
+    border-radius: var(--radius);
+    color: var(--danger);
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.extra-arg-item .btn-remove:hover {
+    background: rgba(239, 68, 68, 0.1);
+    border-color: var(--danger);
+}
+
+.btn-add-arg {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    font-size: 12px;
+    color: var(--accent);
+    background: transparent;
+    border: 1px dashed var(--border-input);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-add-arg:hover {
+    background: var(--bg-hover);
+    border-color: var(--accent);
+}
