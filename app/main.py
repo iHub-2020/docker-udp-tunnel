@@ -294,36 +294,6 @@ def clear_logs():
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
-@app.route('/api/service/start', methods=['POST'])
-@login_required
-def start_service():
-    """Start udp2raw service"""
-    try:
-        config = config_mgr.load()
-        config['global']['enabled'] = True
-        config_mgr.save(config)
-        process_mgr.start_tunnels(config)
-        logger.info("Service started by user")
-        return jsonify({'status': 'success', 'message': 'Service started successfully'})
-    except Exception as e:
-        logger.error(f"Failed to start service: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
-
-@app.route('/api/service/stop', methods=['POST'])
-@login_required
-def stop_service():
-    """Stop udp2raw service"""
-    try:
-        config = config_mgr.load()
-        config['global']['enabled'] = False
-        config_mgr.save(config)
-        process_mgr.stop_all()
-        logger.info("Service stopped by user")
-        return jsonify({'status': 'success', 'message': 'Service stopped successfully'})
-    except Exception as e:
-        logger.error(f"Failed to stop service: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/health')
 def health_check():
