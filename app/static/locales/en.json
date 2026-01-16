@@ -139,10 +139,6 @@
   "enter_password": "Enter password",
   "start_service": "Start Service",
   "stop_service": "Stop Service",
-
-  "enter_password": "Enter password",
-  "start_service": "Start Service",
-  "stop_service": "Stop Service",
   
   "lower_level": "Lower Level (--lower-level)",
   "lower_level_hint": "ⓘ Send packets at OSI level 2. Use 'auto' or 'eth0#MAC_ADDRESS'. Leave empty to disable.",
@@ -153,5 +149,6 @@
   "disable_bpf": "Disable BPF Filter",
   "disable_bpf_hint": "ⓘ Disable kernel-space BPF filter. Use only if you suspect a bug."
 }
+
 
 
