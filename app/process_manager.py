@@ -1,8 +1,8 @@
 # ----------------------------------------------------------------------
 # File: app/process_manager.py
 # Author: iHub-2020
-# Date: 2026-01-13
-# Version: 1.7.0
+# Date: 2026-01-16
+# Version: 1.8.0
 # Description: Manages udp2raw subprocesses based on configuration
 # Updated: 
 #   - Added persistent log file support (/app/logs/udp2raw.log)
@@ -11,6 +11,8 @@
 #   - Fixed: Changed --option=value to --option value format for udp2raw compatibility
 #   - Added: Auto cleanup of residual iptables rules on stop_all()
 #   - Fixed: iptables cleanup now uses line-number based deletion for reliability
+#   - Added: Support for new advanced parameters (lower_level, dev, 
+#     disable_anti_replay, disable_bpf)
 # ----------------------------------------------------------------------
 import subprocess
 import logging
@@ -357,6 +359,7 @@ class ProcessManager:
         if instance_conf.get('auto_iptables', True):
             cmd.append("-a")
             
+        # 🟢 Client-only parameters
         if mode == 'client':
             if instance_conf.get('source_ip'):
                 cmd.extend(["--source-ip", instance_conf['source_ip']])
@@ -366,12 +369,26 @@ class ProcessManager:
             if seq_mode is not None:
                 cmd.extend(["--seq-mode", str(seq_mode)])
 
+        # 🟡 Common advanced parameters (Server & Client)
+        if instance_conf.get('lower_level'):
+            cmd.extend(["--lower-level", instance_conf['lower_level']])
+            
+        if instance_conf.get('dev'):
+            cmd.extend(["--dev", instance_conf['dev']])
+            
+        if instance_conf.get('disable_anti_replay', False):
+            cmd.append("--disable-anti-replay")
+            
+        if instance_conf.get('disable_bpf', False):
+            cmd.append("--disable-bpf")
+
+        # Global parameters
         if global_conf.get('wait_lock', True):
             cmd.append("--wait-lock")
             
         log_level = global_conf.get('log_level', 'info')
-        level_map = {'fatal': 0, 'error': 1, 'warn': 2, 'info': 3, 'debug': 4, 'trace': 5}
-        cmd.extend(["--log-level", str(level_map.get(log_level, 3))])
+        level_map = {'fatal': 1, 'error': 2, 'warn': 3, 'info': 4, 'debug': 5, 'trace': 6}
+        cmd.extend(["--log-level", str(level_map.get(log_level, 4))])
 
         # 额外参数（支持数组和字符串格式，向后兼容）
         if instance_conf.get('extra_args'):
