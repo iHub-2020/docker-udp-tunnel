@@ -2,14 +2,11 @@
 # File: app/config_manager.py
 # Author: iHub-2020
 # Date: 2026-01-16
-# Version: 1.2.0
+# Version: 1.3.0
 # Description: Handles reading and writing JSON configuration
 # Updated: 
-#   - Added new fields for LuCI compatibility (listen_ip, local_ip,
-#     source_ip, source_port, seq_mode, wait_lock, theme)
-#   - Added advanced parameters: lower_level, dev, disable_anti_replay, 
-#     disable_bpf
-#   - Changed extra_args default from "" to []
+#   - Removed redundant fields: lower_level, dev, disable_anti_replay, disable_bpf
+#   - Changed default cipher_mode to aes128cbc, auth_mode to md5
 # ----------------------------------------------------------------------
 import json
 import os
@@ -18,7 +15,6 @@ import logging
 class ConfigManager:
     def __init__(self, config_path=None):
         self.logger = logging.getLogger("ConfigManager")
-        # 如果传入了路径则使用，否则使用默认
         self.config_path = config_path if config_path else "/app/config/udp-tunnel.json"
 
     def load(self):
@@ -80,15 +76,11 @@ class ConfigManager:
             "listen_port": 29900,
             "forward_ip": "127.0.0.1",
             "forward_port": 51820,
-            "password": "password",
+            "password": "your_password",
             "raw_mode": "faketcp",
-            "cipher_mode": "xor",
-            "auth_mode": "simple",
+            "cipher_mode": "aes128cbc",   # ✅ 改为官方默认
+            "auth_mode": "md5",            # ✅ 改为官方默认
             "auto_iptables": True,
-            "lower_level": "",
-            "dev": "",
-            "disable_anti_replay": False,
-            "disable_bpf": False,
             "extra_args": []
         }
 
@@ -101,18 +93,14 @@ class ConfigManager:
             "server_port": 29900,
             "local_ip": "127.0.0.1",
             "local_port": 3333,
-            "password": "password",
+            "password": "your_password",
             "raw_mode": "faketcp",
-            "cipher_mode": "xor",
-            "auth_mode": "simple",
+            "cipher_mode": "aes128cbc",   # ✅ 改为官方默认
+            "auth_mode": "md5",            # ✅ 改为官方默认
             "auto_iptables": True,
             "source_ip": "",
             "source_port": "",
             "seq_mode": 3,
-            "lower_level": "",
-            "dev": "",
-            "disable_anti_replay": False,
-            "disable_bpf": False,
             "extra_args": []
         }
 
