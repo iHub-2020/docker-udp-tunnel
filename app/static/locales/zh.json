@@ -137,4 +137,7 @@
   "login_button": "登录",
   "login_footer": "通过 WEB_PASSWORD 环境变量设置密码",
   "enter_password": "请输入密码"
+  "start_service": "启动进程",
+  "stop_service": "停止进程"
 }
+
