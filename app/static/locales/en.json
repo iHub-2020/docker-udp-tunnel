@@ -136,5 +136,8 @@
   "login_error": "Invalid password. Please try again.",
   "login_button": "Login",
   "login_footer": "Set password via WEB_PASSWORD environment variable",
-  "enter_password": "Enter password"
+  "enter_password": "Enter password",
+  "start_service": "Start Service",
+  "stop_service": "Stop Service"
 }
+
