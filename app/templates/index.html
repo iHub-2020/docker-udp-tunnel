@@ -474,10 +474,19 @@
                     <div class="form-row">
                         <label class="form-label" data-i18n="extra_args">Extra Arguments</label>
                         <div class="form-control-wrapper">
-                            <input type="text" class="form-control" id="editExtraArgs" placeholder="--lower-level auto">
-                            <span class="form-hint" data-i18n="extra_args_hint">ⓘ Additional command line arguments (e.g. --lower-level auto).</span>
+                            <div class="extra-args-list" id="extraArgsList">
+                                <!-- Dynamic list items will be inserted here -->
+                            </div>
+                            <button type="button" class="btn-add-arg" onclick="addExtraArg()">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                                <span data-i18n="add_line">Add Line</span>
+                            </button>
+                            <span class="form-hint" data-i18n="extra_args_hint">ⓘ Additional command line arguments. One argument or group per line (e.g. --lower-level auto).</span>
                         </div>
-                    </div>
+                    </div>                    
                 </div>
             </div>
             <div class="modal-footer">
