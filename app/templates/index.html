@@ -297,7 +297,9 @@
         <div class="action-bar">
             <button class="btn btn-primary" onclick="saveAndApply()" data-i18n="save_apply">Save & Apply</button>
             <button class="btn btn-secondary" onclick="saveOnly()" data-i18n="save_only">Save Only</button>
-            <button class="btn btn-outline" onclick="resetConfig()" data-i18n="reset">Reset</button>
+            <button class="btn btn-success" id="serviceToggleBtn" onclick="toggleService()">
+                <span data-i18n="start_service">Start Service</span>
+            </button>
         </div>
     </main>
 
