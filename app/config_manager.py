@@ -81,7 +81,7 @@ class ConfigManager:
             "cipher_mode": "xor",
             "auth_mode": "simple",
             "auto_iptables": True,
-            "extra_args": ""
+            "extra_args": []  # ← 改这里：从 "" 改成 []
         }
 
     def _get_client_template(self):
@@ -101,7 +101,7 @@ class ConfigManager:
             "source_ip": "",
             "source_port": "",
             "seq_mode": 3,
-            "extra_args": ""
+             "extra_args": []  # ← 改这里：从 "" 改成 []
         }
 
     def get_default_config(self):
