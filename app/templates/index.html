@@ -2,14 +2,12 @@
  * File: app/templates/index.html
  * Author: iHub-2020
  * Date: 2026-01-16
- * Version: 3.0.0
+ * Version: 3.1.0
  * Description: UDP Tunnel Manager - Web UI for udp2raw
  * Updated: 
- *   - Removed all inline scripts (moved to app.js)
- *   - Fixed Advanced Settings parameter classification
- *   - Added data-i18n attributes for all translatable elements
- *   - Added new advanced parameters: lower_level, dev, disable_anti_replay, 
- *     disable_bpf
+ *   - Removed redundant advanced fields (lower_level, dev, disable_anti_replay, disable_bpf)
+ *   - Added missing dropdown options (Easy-FakeTCP, AES-128-CFB, Auth None)
+ *   - Fixed default values to match udp2raw official defaults
  * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
 -->
 <!DOCTYPE html>
@@ -376,7 +374,7 @@
                         <label class="form-label" data-i18n="password">Password (-k)</label>
                         <div class="form-control-wrapper">
                             <div class="input-group">
-                                <input type="password" class="form-control" id="editPassword" placeholder="*">
+                                <input type="password" class="form-control" id="editPassword" placeholder="your_password">
                                 <button type="button" class="btn-toggle-password" onclick="togglePassword('editPassword', this)">👁</button>
                             </div>
                             <span class="form-hint" data-i18n="password_hint">ⓘ Encryption password. Must match client configuration exactly.</span>
@@ -402,34 +400,37 @@
                         <label class="form-label" data-i18n="raw_mode">Raw Mode</label>
                         <div class="form-control-wrapper">
                             <select class="form-select" id="editRawMode">
-                                <option value="faketcp" data-i18n="faketcp">FakeTCP (Recommended)</option>
+                                <option value="faketcp" data-i18n="faketcp">FakeTCP (Default)</option>
+                                <option value="easy-faketcp" data-i18n="easy_faketcp">Easy-FakeTCP</option>
                                 <option value="udp" data-i18n="udp">UDP</option>
                                 <option value="icmp" data-i18n="icmp">ICMP</option>
                             </select>
-                            <span class="form-hint" data-i18n="raw_mode_hint">ⓘ Transport protocol. FakeTCP is recommended for bypassing firewalls.</span>
+                            <span class="form-hint" data-i18n="raw_mode_hint">ⓘ Transport protocol. Official default is faketcp.</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <label class="form-label" data-i18n="cipher_mode">Cipher Mode</label>
                         <div class="form-control-wrapper">
                             <select class="form-select" id="editCipherMode">
+                                <option value="aes128cbc" data-i18n="aes128cbc">AES-128-CBC (Default)</option>
+                                <option value="aes128cfb" data-i18n="aes128cfb">AES-128-CFB</option>
                                 <option value="xor" data-i18n="xor_fast">XOR (Fast)</option>
-                                <option value="aes128cbc" data-i18n="aes128cbc">AES-128-CBC</option>
-                                <option value="none" data-i18n="cipher_none">None</option>
+                                <option value="none" data-i18n="cipher_none">None (Debug Only)</option>
                             </select>
-                            <span class="form-hint" data-i18n="cipher_mode_hint">ⓘ Encryption method. XOR is fast and usually sufficient.</span>
+                            <span class="form-hint" data-i18n="cipher_mode_hint">ⓘ Encryption algorithm. Official default is aes128cbc.</span>
                         </div>
                     </div>
                     <div class="form-row">
                         <label class="form-label" data-i18n="auth_mode">Auth Mode</label>
                         <div class="form-control-wrapper">
                             <select class="form-select" id="editAuthMode">
-                                <option value="simple" data-i18n="simple_basic">Simple (Basic)</option>
-                                <option value="md5" data-i18n="md5">MD5</option>
-                                <option value="crc32" data-i18n="crc32">CRC32</option>
+                                <option value="md5" data-i18n="md5">MD5 (Default)</option>
                                 <option value="hmac_sha1" data-i18n="hmac_sha1">HMAC-SHA1</option>
+                                <option value="crc32" data-i18n="crc32">CRC32</option>
+                                <option value="simple" data-i18n="simple_basic">Simple</option>
+                                <option value="none" data-i18n="auth_none">None (Debug Only)</option>
                             </select>
-                            <span class="form-hint" data-i18n="auth_mode_hint">ⓘ Authentication method. Simple is basic protection.</span>
+                            <span class="form-hint" data-i18n="auth_mode_hint">ⓘ Authentication algorithm. Official default is md5.</span>
                         </div>
                     </div>
                 </div>
@@ -441,14 +442,14 @@
                         <label class="form-label" data-i18n="source_ip">Source IP (--source-ip)</label>
                         <div class="form-control-wrapper">
                             <input type="text" class="form-control" id="editSourceIp" placeholder="">
-                            <span class="form-hint" data-i18n="source_ip_hint">ⓘ Client only. Force source-ip for raw socket.</span>
+                            <span class="form-hint" data-i18n="source_ip_hint">ⓘ Client only. Force source-ip for raw socket. Leave empty to disable.</span>
                         </div>
                     </div>
                     <div class="form-row client-field" style="display:none;">
                         <label class="form-label" data-i18n="source_port">Source Port (--source-port)</label>
                         <div class="form-control-wrapper">
                             <input type="number" class="form-control" id="editSourcePort" placeholder="">
-                            <span class="form-hint" data-i18n="source_port_hint">ⓘ Client only. Disables port changing while re-connecting.</span>
+                            <span class="form-hint" data-i18n="source_port_hint">ⓘ Client only. Disables port changing while re-connecting. Leave empty to disable.</span>
                         </div>
                     </div>
                     <div class="form-row client-field" style="display:none;">
@@ -461,45 +462,16 @@
                                 <option value="3" selected>3 - Simulate real seq/ack (Default)</option>
                                 <option value="4">4 - Like 3, ignore Window Scale</option>
                             </select>
-                            <span class="form-hint" data-i18n="seq_mode_hint">ⓘ FakeTCP behavior simulation. Mode 3 is recommended.</span>
+                            <span class="form-hint" data-i18n="seq_mode_hint">ⓘ Seq increase mode for FakeTCP. Official default is mode 3.</span>
                         </div>
                     </div>
                     
                     <!-- 🟡 Common Parameters (Server & Client) -->
                     <div class="form-row">
-                        <label class="form-label" data-i18n="lower_level">Lower Level (--lower-level)</label>
-                        <div class="form-control-wrapper">
-                            <input type="text" class="form-control" id="editLowerLevel" placeholder="auto">
-                            <span class="form-hint" data-i18n="lower_level_hint">ⓘ Send packets at OSI level 2. Use 'auto' or 'eth0#MAC_ADDRESS'. Leave empty to disable.</span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label class="form-label" data-i18n="dev">Device Binding (--dev)</label>
-                        <div class="form-control-wrapper">
-                            <input type="text" class="form-control" id="editDev" placeholder="eth0">
-                            <span class="form-hint" data-i18n="dev_hint">ⓘ Bind raw socket to a specific network device. Leave empty for auto.</span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label class="form-label" data-i18n="disable_anti_replay">Disable Anti-Replay</label>
-                        <div class="form-control-wrapper">
-                            <input type="checkbox" class="checkbox" id="editDisableAntiReplay">
-                            <span class="form-hint warning" data-i18n="disable_anti_replay_hint">⚠ Not recommended. Disables replay attack protection.</span>
-                        </div>
-                    </div>
-                    <div class="form-row">
-                        <label class="form-label" data-i18n="disable_bpf">Disable BPF Filter</label>
-                        <div class="form-control-wrapper">
-                            <input type="checkbox" class="checkbox" id="editDisableBpf">
-                            <span class="form-hint" data-i18n="disable_bpf_hint">ⓘ Disable kernel-space BPF filter. Use only if you suspect a bug.</span>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
                         <label class="form-label" data-i18n="auto_iptables">Auto Add Iptables Rule (-a)</label>
                         <div class="form-control-wrapper">
                             <input type="checkbox" class="checkbox" id="editAutoIptables" checked>
-                            <span class="form-hint" data-i18n="auto_iptables_hint">ⓘ Required for FakeTCP mode. Auto-adds iptables rules.</span>
+                            <span class="form-hint" data-i18n="auto_iptables_hint">ⓘ FakeTCP mode requires this. Automatically manage iptables rules.</span>
                         </div>
                     </div>
                     <div class="form-row">
@@ -515,7 +487,7 @@
                                 </svg>
                                 <span data-i18n="add_line">Add Line</span>
                             </button>
-                            <span class="form-hint" data-i18n="extra_args_hint">ⓘ Additional command line arguments. One argument or group per line (e.g. --lower-level auto).</span>
+                            <span class="form-hint" data-i18n="extra_args_hint">ⓘ Additional command line arguments (e.g. --lower-level auto). One argument or group per line.</span>
                         </div>
                     </div>                    
                 </div>
