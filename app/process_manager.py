@@ -373,9 +373,17 @@ class ProcessManager:
         level_map = {'fatal': 0, 'error': 1, 'warn': 2, 'info': 3, 'debug': 4, 'trace': 5}
         cmd.extend(["--log-level", str(level_map.get(log_level, 3))])
 
-        # 额外参数
+        # 额外参数（支持数组和字符串格式，向后兼容）
         if instance_conf.get('extra_args'):
-            cmd.extend(shlex.split(instance_conf['extra_args']))
+            extra_args = instance_conf['extra_args']
+            if isinstance(extra_args, list):
+                # 新格式：数组，每个元素是一个参数或参数组
+                for arg in extra_args:
+                    if arg.strip():  # 忽略空行
+                        cmd.extend(shlex.split(arg.strip()))
+            else:
+                # 旧格式：字符串（向后兼容）
+                cmd.extend(shlex.split(extra_args))
 
         alias = instance_conf.get('alias', f'{mode}_{index}')
         cmd_str = ' '.join(cmd)
@@ -421,4 +429,5 @@ class ProcessManager:
                 'running': is_running,
                 'pid': proc.pid if is_running else None
             })
+
         return status_list
