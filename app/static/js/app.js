@@ -789,18 +789,18 @@
         setVal('editAlias', type === 'server' ? 'New Server' : 'New Client');
         setVal('editPassword', '');
         setVal('editRawMode', 'faketcp');
-        setVal('editCipherMode', 'xor');
-        setVal('editAuthMode', 'simple');
+        setVal('editCipherMode', 'aes128cbc');  // ✅ 改为官方默认
+        setVal('editAuthMode', 'md5');          // ✅ 改为官方默认
         setCheck('editAutoIptables', true);
         setVal('editSourceIp', '');
         setVal('editSourcePort', '');
         setVal('editSeqMode', '3');
 
-        // 🆕 添加这 4 行
-        setVal('editLowerLevel', '');
-        setVal('editDev', '');
-        setCheck('editDisableAntiReplay', false);
-        setCheck('editDisableBpf', false);
+        // ❌ 删除这 4 行（冗余字段）
+        // setVal('editLowerLevel', '');
+        // setVal('editDev', '');
+        // setCheck('editDisableAntiReplay', false);
+        // setCheck('editDisableBpf', false);
         
         // Initialize extra args with one empty line
         setExtraArgs([]);
@@ -864,18 +864,18 @@
         setVal('editAlias', item.alias || '');
         setVal('editPassword', item.password || '');
         setVal('editRawMode', item.raw_mode || 'faketcp');
-        setVal('editCipherMode', item.cipher_mode || 'xor');
-        setVal('editAuthMode', item.auth_mode || 'simple');
+        setVal('editCipherMode', item.cipher_mode || 'aes128cbc');  // ✅ 默认改为 aes128cbc
+        setVal('editAuthMode', item.auth_mode || 'md5');            // ✅ 默认改为 md5
         setCheck('editAutoIptables', item.auto_iptables !== false);
         setVal('editSourceIp', item.source_ip || '');
         setVal('editSourcePort', item.source_port || '');
         setVal('editSeqMode', item.seq_mode || '3');
 
-        // 🆕 添加这 4 行
-        setVal('editLowerLevel', item.lower_level || '');
-        setVal('editDev', item.dev || '');
-        setCheck('editDisableAntiReplay', item.disable_anti_replay || false);
-        setCheck('editDisableBpf', item.disable_bpf || false);
+        // ❌ 删除这 4 行（冗余字段）
+        // setVal('editLowerLevel', item.lower_level || '');
+        // setVal('editDev', item.dev || '');
+        // setCheck('editDisableAntiReplay', item.disable_anti_replay || false);
+        // setCheck('editDisableBpf', item.disable_bpf || false);
         
         // Load extra args (support both array and string for backward compatibility)
         let extraArgs = item.extra_args || [];
@@ -941,11 +941,11 @@
             auth_mode: getVal('editAuthMode'),
             auto_iptables: getCheck('editAutoIptables'),
 
-            // 🆕 添加这 4 行
-            lower_level: getVal('editLowerLevel'),
-            dev: getVal('editDev'),
-            disable_anti_replay: getCheck('editDisableAntiReplay'),
-            disable_bpf: getCheck('editDisableBpf'),
+            // ❌ 删除这 4 行（冗余字段）
+            // lower_level: getVal('editLowerLevel'),
+            // dev: getVal('editDev'),
+            // disable_anti_replay: getCheck('editDisableAntiReplay'),
+            // disable_bpf: getCheck('editDisableBpf'),
             
             extra_args: getExtraArgs()  // ✅ Now returns array instead of string
         };
@@ -1108,4 +1108,5 @@
     window.config = config;
 
 })();
+
 
