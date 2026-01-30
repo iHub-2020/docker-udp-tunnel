@@ -200,6 +200,10 @@
                     </div>
                     <div class="table-footer">
                         <button class="btn-add" onclick="openAddModal('server')" data-i18n="add_server">+ Add Server</button>
+                        <div class="import-export-actions">
+                            <button class="btn btn-outline btn-sm" onclick="importConfig('server')" data-i18n="import_servers">Import Servers</button>
+                            <button class="btn btn-outline btn-sm" onclick="exportConfig('server')" data-i18n="export_servers">Export Servers</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -265,6 +269,10 @@
                     </div>
                     <div class="table-footer">
                         <button class="btn-add" onclick="openAddModal('client')" data-i18n="add_client">+ Add Client</button>
+                        <div class="import-export-actions">
+                            <button class="btn btn-outline btn-sm" onclick="importConfig('client')" data-i18n="import_clients">Import Clients</button>
+                            <button class="btn btn-outline btn-sm" onclick="exportConfig('client')" data-i18n="export_clients">Export Clients</button>
+                        </div>
                     </div>
                 </div>
                 
@@ -297,7 +305,7 @@
         <div class="action-bar">
             <button class="btn btn-primary" onclick="saveAndApply()" data-i18n="save_apply">Save & Apply</button>
             <button class="btn btn-secondary" onclick="saveOnly()" data-i18n="save_only">Save Only</button>
-            <button class="btn btn-outline" onclick="resetConfig()" data-i18n="reset">Reset</button>
+            <button class="btn btn-outline" onclick="resetConfigWithConfirm()" data-i18n="reset">Reset</button>
         </div>
     </main>
 

@@ -295,6 +295,39 @@ def clear_logs():
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 
+@app.route('/api/reset', methods=['POST'])
+@login_required
+def reset_configuration():
+    """Reset configuration to factory defaults"""
+    try:
+        # Stop all running processes
+        process_mgr.stop_all()
+        
+        # Reset to default configuration
+        default_config = {
+            'global': {
+                'enabled': False,
+                'keep_iptables': True,
+                'wait_lock': True,
+                'retry_on_error': True,
+                'log_level': 'info'
+            },
+            'servers': [],
+            'clients': []
+        }
+        
+        # Save default configuration
+        if config_mgr.save(default_config):
+            logger.info("Configuration reset to factory defaults")
+            return jsonify({'status': 'success', 'message': 'Configuration reset to factory defaults.'})
+        else:
+            return jsonify({'status': 'error', 'message': 'Failed to reset configuration.'}), 500
+            
+    except Exception as e:
+        logger.error(f"Failed to reset configuration: {e}")
+        return jsonify({'status': 'error', 'message': f'Reset failed: {str(e)}'}), 500
+
+
 @app.route('/health')
 def health_check():
     """Health check endpoint (no auth required)"""

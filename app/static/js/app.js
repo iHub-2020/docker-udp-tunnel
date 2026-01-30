@@ -760,6 +760,178 @@
     };
 
     /**
+     * Enhanced reset configuration with confirmation
+     */
+    window.resetConfigWithConfirm = function() {
+        const message = 'This will:\n\n' +
+                       '• Stop all running tunnels\n' +
+                       '• Clear all server and client configurations\n' +
+                       '• Reset global settings to defaults\n' +
+                       '• Remove all iptables rules\n\n' +
+                       'This action cannot be undone. Continue?';
+        
+        if (confirm(message)) {
+            resetAllConfiguration();
+        }
+    };
+
+    /**
+     * Reset all configuration to factory defaults
+     */
+    async function resetAllConfiguration() {
+        try {
+            const response = await fetch('/api/reset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to reset configuration');
+            }
+            
+            // Reset to default config
+            config = {
+                global: {
+                    enabled: false,
+                    keep_iptables: true,
+                    wait_lock: true,
+                    retry_on_error: true,
+                    log_level: 'info'
+                },
+                servers: [],
+                clients: []
+            };
+            
+            originalConfig = JSON.parse(JSON.stringify(config));
+            applyConfigToUI();
+            renderServerTable();
+            renderClientTable();
+            loadStatus();
+            
+            alert('Configuration has been reset to factory defaults.');
+            
+        } catch (error) {
+            console.error('Reset error:', error);
+            alert('Failed to reset configuration: ' + error.message);
+        }
+    }
+
+    /**
+     * Export configuration
+     */
+    window.exportConfig = function(type) {
+        const data = type === 'server' ? config.servers : config.clients;
+        const filename = `udp-tunnel-${type}s-${new Date().toISOString().split('T')[0]}.json`;
+        
+        const exportData = {
+            version: '3.3.0',
+            type: type + 's',
+            exported_at: new Date().toISOString(),
+            data: data
+        };
+        
+        const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        console.log(`Exported ${data.length} ${type}(s) to ${filename}`);
+    };
+
+    /**
+     * Import configuration
+     */
+    window.importConfig = function(type) {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = '.json';
+        
+        input.onchange = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                    
+                    // Validate import data
+                    if (!importData.data || !Array.isArray(importData.data)) {
+                        throw new Error('Invalid file format: missing data array');
+                    }
+                    
+                    if (importData.type && importData.type !== type + 's') {
+                        if (!confirm(`This file contains ${importData.type} but you're importing to ${type}s. Continue anyway?`)) {
+                            return;
+                        }
+                    }
+                    
+                    // Validate each item
+                    const validItems = [];
+                    for (const item of importData.data) {
+                        if (validateConfigItem(item, type)) {
+                            validItems.push(item);
+                        }
+                    }
+                    
+                    if (validItems.length === 0) {
+                        alert('No valid items found in the import file.');
+                        return;
+                    }
+                    
+                    const message = `Import ${validItems.length} ${type}(s)?\n\n` +
+                                   `This will add to existing configurations.`;
+                    
+                    if (confirm(message)) {
+                        if (type === 'server') {
+                            config.servers.push(...validItems);
+                        } else {
+                            config.clients.push(...validItems);
+                        }
+                        
+                        renderServerTable();
+                        renderClientTable();
+                        
+                        alert(`Successfully imported ${validItems.length} ${type}(s).`);
+                        console.log(`Imported ${validItems.length} ${type}(s)`);
+                    }
+                    
+                } catch (error) {
+                    console.error('Import error:', error);
+                    alert('Failed to import configuration: ' + error.message);
+                }
+            };
+            
+            reader.readAsText(file);
+        };
+        
+        input.click();
+    };
+
+    /**
+     * Validate configuration item
+     */
+    function validateConfigItem(item, type) {
+        if (!item || typeof item !== 'object') return false;
+        
+        if (type === 'server') {
+            return item.hasOwnProperty('listen_port') && 
+                   item.hasOwnProperty('forward_ip') && 
+                   item.hasOwnProperty('forward_port');
+        } else {
+            return item.hasOwnProperty('server_ip') && 
+                   item.hasOwnProperty('server_port') && 
+                   item.hasOwnProperty('local_port');
+        }
+    }
+
+    /**
      * Open modal to add new instance
      */
     window.openAddModal = function(type) {
