@@ -11,24 +11,24 @@
 #   - Added SECRET_KEY generation instructions
 #   - Clarified HOST_UID/HOST_GID usage
 #   - Added security best practices
-# GitHub: https://github.com/iHub-2020/docker-udp-tunnel
+# GitHub: https://github.com/iHub-2020-Org/docker-app-udp2raw
 # ----------------------------------------------------------------------
 version: '3.8'
 
 services:
-  udp-tunnel:
+  docker-app-udp2raw:
     # ================== 镜像配置 ==================
     # 使用 GitHub Container Registry 镜像
-    image: ghcr.io/ihub-2020/docker-udp-tunnel:latest
-    
+    image: ghcr.io/ihub-2020/docker-app-udp2raw:latest
+
     # 如果需要本地构建，注释上面的 image，取消下面的注释
     # build:
     #   context: .
     #   dockerfile: Dockerfile
-    
-    container_name: udp-tunnel-manager
+
+    container_name: docker-app-udp2raw
     restart: unless-stopped
-    
+
     # ================== 网络模式 ==================
     # [关键] Host 模式
     # udp2raw 需要处理底层网络包和操作 iptables，Host 模式性能最好
@@ -36,83 +36,83 @@ services:
     # HTTP 访问：http://<宿主机IP>:5000
     # HTTPS 访问：https://<宿主机IP>:5000 (如果 ENABLE_HTTPS=true)
     network_mode: host
-    
+
     # ================== 权限配置 ==================
     # [关键] NET_ADMIN 权限
     # 允许容器操作网络接口、iptables 和 raw socket
     cap_add:
       - NET_ADMIN
-      
+
     # ================== 卷挂载 ==================
     volumes:
       # 配置文件持久化（包含隧道配置）
       - ./config:/app/config
-      
+
       # 日志文件持久化
       - ./logs:/app/logs
-      
+
       # [可选] HTTPS 证书挂载（生产环境使用）
       # 如果使用 Let's Encrypt 或自有证书，取消下面的注释
       # - /etc/letsencrypt/live/your-domain:/app/config/certs:ro
-      
+
     # ================== 环境变量 ==================
     environment:
       # ------------------ Flask 配置 ------------------
       # 运行环境（production/development）
       - FLASK_ENV=production
-      
+
       # ------------------ 认证配置 ------------------
       # Web 界面登录密码
       # 🔴 安全警告：生产环境必须修改为强密码！
       # 建议：至少 16 位，包含大小写字母、数字和特殊字符
       - WEB_PASSWORD=your_secure_password_here
-      
+
       # Flask Session 密钥（用于加密会话 Cookie）
       # 🔴 安全警告：生产环境必须修改为随机字符串！
       # 生成命令：python3 -c "import secrets; print(secrets.token_hex(32))"
       # 或：openssl rand -hex 32
       - SECRET_KEY=your_secret_key_here
-      
+
       # ------------------ HTTPS 配置 ------------------
       # HTTPS 开关（true/false）
       # - true:  启用 HTTPS（自动生成自签名证书或使用挂载的证书）
       # - false: 使用 HTTP（默认，适合配合 Nginx/Caddy 反向代理）
-      # 
+      #
       # 证书路径（如果 ENABLE_HTTPS=true）：
       #   - ./config/certs/server.crt (证书)
       #   - ./config/certs/server.key (私钥)
       # 如果不存在，entrypoint.sh 会自动生成自签名证书
       - ENABLE_HTTPS=false
-      
+
       # ------------------ 权限处理 ------------------
       # 宿主机用户 UID 和 GID（用于日志文件权限映射）
-      # 
+      #
       # 为什么需要？
       #   容器内部以 root 运行，但挂载的日志文件属于宿主机用户
       #   设置这些变量后，entrypoint.sh 会调整文件权限
-      # 
+      #
       # 如何获取？
       #   在宿主机执行：id -u  (UID)
       #   在宿主机执行：id -g  (GID)
-      # 
+      #
       # 示例（当前配置）：
       #   HOST_UID=1000, HOST_GID=1000 → 适用于大多数 Linux 第一个用户
-      # 
+      #
       # 如果宿主机是 root 用户，留空即可：
       #   - HOST_UID=
       #   - HOST_GID=
       - HOST_UID=1000
       - HOST_GID=1000
-      
+
     # ================== 日志配置 ==================
     # 限制 Docker 容器日志大小，防止磁盘占满
-    # 注意：这是 Docker 日志，不是应用内日志（/app/logs/udp-tunnel.log）
+    # 注意：这是 Docker 日志，不是应用内日志（/app/logs/udp2raw-manager.log）
     logging:
       driver: "json-file"
       options:
         max-size: "10m"   # 单个日志文件最大 10MB
         max-file: "3"     # 保留最近 3 个日志文件
-        
+
     # ================== 健康检查 ==================
     # 容器健康状态检测
     # 注意：虽然使用 host 模式，但容器内 127.0.0.1 仍指向容器自身
@@ -125,20 +125,20 @@ services:
       start_period: 10s   # 容器启动后 10 秒开始检测
 
 # ================== 补充说明 ==================
-# 
+#
 # 📌 网络访问：
 #   由于使用 host 模式，访问地址为：
 #   - HTTP:  http://<宿主机IP>:5000
 #   - HTTPS: https://<宿主机IP>:5000 (如果 ENABLE_HTTPS=true)
-# 
+#
 # 📌 防火墙配置（如果宿主机启用了防火墙）：
 #   # UFW 示例
 #   sudo ufw allow 5000/tcp
-#   
+#
 #   # firewalld 示例
 #   sudo firewall-cmd --permanent --add-port=5000/tcp
 #   sudo firewall-cmd --reload
-# 
+#
 # 📌 生产环境建议：
 #   1. 修改 WEB_PASSWORD 为强密码
 #   2. 生成随机 SECRET_KEY：
@@ -146,15 +146,15 @@ services:
 #   3. 使用反向代理处理 HTTPS（Nginx/Caddy），保持 ENABLE_HTTPS=false
 #   4. 定期备份 ./config 目录
 #   5. 监控 ./logs 目录大小
-# 
+#
 # 📌 查看日志：
 #   # Docker 容器日志
-#   docker logs -f udp-tunnel-manager
-#   
+#   docker logs -f docker-app-udp2raw
+#
 #   # 应用日志
-#   tail -f ./logs/udp-tunnel.log
+#   tail -f ./logs/udp2raw-manager.log
 #   tail -f ./logs/udp2raw.log
-# 
+#
 # 📌 更新镜像：
 #   docker-compose pull
 #   docker-compose up -d

@@ -1,5 +1,5 @@
 {
-  "app_title": "UDP Tunnel Manager",
+  "app_title": "udp2raw Manager",
   "app_subtitle": "A web UI based on udp2raw",
   "service_status": "Service Status:",
   "stopped": "Stopped",
@@ -7,13 +7,13 @@
   "disabled": "Disabled",
   "tunnels_active": "tunnels active",
   "diagnostics": "Diagnostics",
-  
+
   "safety_title": "Critical Safety Information",
   "safety_faketcp": "FakeTCP mode <strong>REQUIRES</strong> iptables rules to block kernel TCP RST packets.",
   "safety_openwrt": "On OpenWrt, iptables rules may be <strong>cleared</strong> when network settings change.",
   "safety_recommend": "The \"Keep Iptables Rules\" option is <strong>STRONGLY</strong> recommended for OpenWrt.",
   "safety_server": "Server Mode: You <strong>MUST</strong> specify \"Forward To\" address (usually 127.0.0.1).",
-  
+
   "global_settings": "Global Settings",
   "global_settings_desc": "Global settings for udp2raw daemon.",
   "enable_service": "Enable Service",
@@ -31,14 +31,14 @@
   "log_warning": "Warning",
   "log_debug": "Debug",
   "log_trace": "Trace",
-  
+
   "server_instances": "Server Instances (-s)",
   "server_desc": "Server Mode: OpenWrt listens for connections from remote clients.",
   "server_traffic_flow": "Traffic Flow: Internet → WAN Port → [Decrypted] → Forward To IP:Port.",
   "client_instances": "Client Instances (-c)",
   "client_desc": "Client Mode: OpenWrt connects to remote udp2raw server (VPS).",
   "client_traffic_flow": "Traffic Flow: App → Local Port → [Encrypted] → Forward To VPS IP:Port.",
-  
+
   "config": "Config",
   "status": "Status",
   "name": "Name",
@@ -54,11 +54,11 @@
   "delete": "Delete",
   "add_server": "+ Add Server",
   "add_client": "+ Add Client",
-  
+
   "no_server_instances": "No server instances.",
   "no_client_instances": "No client instances.",
   "no_tunnels": "No tunnels configured.",
-  
+
   "local": "Local",
   "remote": "Remote",
   "forward": "Forward",
@@ -67,18 +67,18 @@
   "mode": "Mode",
   "server": "Server",
   "client": "Client",
-  
+
   "save_apply": "Save & Apply",
   "save_only": "Save Only",
   "reset": "Reset",
-  
+
   "new_server": "New Server",
   "new_client": "New Client",
   "basic_settings": "Basic Settings",
   "advanced_settings": "Advanced Settings",
   "close": "Close",
   "save": "Save",
-  
+
   "alias": "Alias",
   "password": "Password (-k)",
   "password_hint": "ⓘ Encryption password. Must match client configuration exactly.",
@@ -102,7 +102,7 @@
   "md5": "MD5",
   "crc32": "CRC32",
   "hmac_sha1": "HMAC-SHA1",
-  
+
   "source_ip": "Source IP (--source-ip)",
   "source_ip_hint": "ⓘ Client only. Force source-ip for raw socket.",
   "source_port": "Source Port (--source-port)",
@@ -113,7 +113,7 @@
   "auto_iptables_hint": "ⓘ Required for FakeTCP mode. Auto-adds iptables rules.",
   "extra_args": "Extra Arguments",
   "extra_args_hint": "ⓘ Additional command line arguments (e.g. --lower-level auto).",
-  
+
   "tunnel_status": "UDP Tunnel Status",
   "system_diagnostics": "System Diagnostics",
   "core_binary": "Core Binary:",
@@ -126,12 +126,12 @@
   "no_logs": "No recent logs.",
   "refresh_logs": "Refresh Logs",
   "scroll_bottom": "Scroll to Bottom",
-  
+
   "config_saved": "Configuration saved and applied successfully!",
   "config_saved_only": "Configuration saved (not applied).",
   "confirm_delete": "Are you sure you want to delete this instance?",
-  
-  "login_title": "UDP Tunnel Manager",
+
+  "login_title": "udp2raw Manager",
   "login_subtitle": "Please login to continue",
   "login_error": "Invalid password. Please try again.",
   "login_button": "Login",
@@ -139,7 +139,7 @@
   "enter_password": "Enter password",
   "start_service": "Start Service",
   "stop_service": "Stop Service",
-  
+
   "lower_level": "Lower Level (--lower-level)",
   "lower_level_hint": "ⓘ Send packets at OSI level 2. Use 'auto' or 'eth0#MAC_ADDRESS'. Leave empty to disable.",
   "dev": "Device Binding (--dev)",

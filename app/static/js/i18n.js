@@ -3,12 +3,12 @@
  * Author: iHub-2020
  * Date: 2026-01-15
  * Version: 1.1.0
- * Description: Internationalization module for UDP Tunnel Manager
+ * Description: Internationalization module for udp2raw Manager
  * Updated:
  *   - Fixed async initialization race condition
  *   - Added safe setLanguage wrapper
  *   - Ensured I18n is ready before accepting language changes
- * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
+ * GitHub: https://github.com/iHub-2020-Org/docker-app-udp2raw
  */
 
 const I18n = {
@@ -16,18 +16,18 @@ const I18n = {
     translations: {},
     fallback: {},
     isReady: false,
-    
+
     async init() {
         // Load English as fallback first
         this.fallback = await this.loadLanguage('en') || {};
-        
+
         const savedLang = localStorage.getItem('language') || 'en';
         await this.setLanguage(savedLang);
-        
+
         this.isReady = true;
         console.log(`I18n initialized with language: ${savedLang}`);
     },
-    
+
     async loadLanguage(lang) {
         try {
             const response = await fetch(`/static/locales/${lang}.json`);
@@ -38,7 +38,7 @@ const I18n = {
             return null;
         }
     },
-    
+
     async setLanguage(lang) {
         const translations = await this.loadLanguage(lang);
         if (translations) {
@@ -52,7 +52,7 @@ const I18n = {
             console.error(`Failed to load translations for: ${lang}`);
         }
     },
-    
+
     t(key, params = {}) {
         let text = this.translations[key] || this.fallback[key] || key;
         Object.keys(params).forEach(param => {
@@ -60,23 +60,23 @@ const I18n = {
         });
         return text;
     },
-    
+
     updatePage() {
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             el.textContent = this.t(key);
         });
-        
+
         document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
             const key = el.getAttribute('data-i18n-placeholder');
             el.placeholder = this.t(key);
         });
-        
+
         document.querySelectorAll('[data-i18n-title]').forEach(el => {
             const key = el.getAttribute('data-i18n-title');
             el.title = this.t(key);
         });
-        
+
         document.querySelectorAll('[data-i18n-html]').forEach(el => {
             const key = el.getAttribute('data-i18n-html');
             el.innerHTML = this.t(key);

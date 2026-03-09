@@ -1,5 +1,5 @@
 {
-  "app_title": "UDP 隧道管理器",
+  "app_title": "udp2raw 管理器",
   "app_subtitle": "基于 udp2raw 的 Web 管理界面",
   "service_status": "服务状态：",
   "stopped": "已停止",
@@ -7,13 +7,11 @@
   "disabled": "已禁用",
   "tunnels_active": "条隧道活跃",
   "diagnostics": "诊断信息",
-  
   "safety_title": "重要安全提示",
   "safety_faketcp": "FakeTCP 模式<strong>必须</strong>使用 iptables 规则阻止内核发送 TCP RST 包。",
   "safety_openwrt": "在 OpenWrt 上，当网络设置更改时，iptables 规则可能会被<strong>清空</strong>。",
   "safety_recommend": "<strong>强烈建议</strong>在 OpenWrt 上启用\"保持 Iptables 规则\"选项。",
   "safety_server": "服务端模式：您<strong>必须</strong>指定\"转发到\"地址（通常为 127.0.0.1）。",
-  
   "global_settings": "全局设置",
   "global_settings_desc": "udp2raw 守护进程的全局配置。",
   "enable_service": "启用服务",
@@ -31,14 +29,12 @@
   "log_warning": "Warning",
   "log_debug": "Debug",
   "log_trace": "Trace",
-  
   "server_instances": "服务端实例 (-s)",
   "server_desc": "服务端模式：OpenWrt 监听来自远程客户端的连接。",
   "server_traffic_flow": "流量流向：互联网 → WAN 端口 → [解密] → 转发到 IP:端口。",
   "client_instances": "客户端实例 (-c)",
   "client_desc": "客户端模式：OpenWrt 连接到远程 udp2raw 服务器（VPS）。",
   "client_traffic_flow": "流量流向：应用 → 本地端口 → [加密] → 转发到 VPS IP:端口。",
-  
   "config": "配置",
   "status": "状态",
   "name": "名称",
@@ -54,11 +50,9 @@
   "delete": "删除",
   "add_server": "+ 添加服务端",
   "add_client": "+ 添加客户端",
-  
   "no_server_instances": "无服务端实例。",
   "no_client_instances": "无客户端实例。",
   "no_tunnels": "未配置隧道。",
-  
   "local": "本地",
   "remote": "远程",
   "forward": "转发",
@@ -67,18 +61,15 @@
   "mode": "模式",
   "server": "服务端",
   "client": "客户端",
-  
   "save_apply": "保存并应用",
   "save_only": "仅保存",
   "reset": "重置",
-  
   "new_server": "新建服务端",
   "new_client": "新建客户端",
   "basic_settings": "基础设置",
   "advanced_settings": "高级设置",
   "close": "关闭",
   "save": "保存",
-  
   "alias": "别名",
   "password": "密码 (-k)",
   "password_hint": "ⓘ 加密密码。必须与客户端配置完全一致。",
@@ -102,7 +93,6 @@
   "md5": "MD5",
   "crc32": "CRC32",
   "hmac_sha1": "HMAC-SHA1",
-  
   "source_ip": "源 IP (--source-ip)",
   "source_ip_hint": "ⓘ 仅客户端。强制使用指定源 IP。",
   "source_port": "源端口 (--source-port)",
@@ -113,7 +103,6 @@
   "auto_iptables_hint": "ⓘ FakeTCP 模式必需。自动添加 iptables 规则。",
   "extra_args": "额外参数",
   "extra_args_hint": "ⓘ 额外的命令行参数（例如 --lower-level auto）。",
-  
   "tunnel_status": "UDP 隧道状态",
   "system_diagnostics": "系统诊断",
   "core_binary": "核心二进制文件：",
@@ -126,12 +115,10 @@
   "no_logs": "无最近日志。",
   "refresh_logs": "刷新日志",
   "scroll_bottom": "滚动到底部",
-  
   "config_saved": "配置已保存并应用！",
   "config_saved_only": "配置已保存（未应用）。",
   "confirm_delete": "确定要删除此实例吗？",
-  
-  "login_title": "UDP 隧道管理器",
+  "login_title": "udp2raw 管理器",
   "login_subtitle": "请登录以继续",
   "login_error": "密码错误，请重试",
   "login_button": "登录",
@@ -139,7 +126,6 @@
   "enter_password": "请输入密码",
   "start_service": "启动进程",
   "stop_service": "停止进程",
-  
   "lower_level": "底层发包 (--lower-level)",
   "lower_level_hint": "ⓘ 在 OSI 2 层发送数据包。使用 'auto' 或 '网卡名#MAC地址'。留空则禁用。",
   "dev": "绑定设备 (--dev)",
@@ -148,12 +134,7 @@
   "disable_anti_replay_hint": "⚠ 不推荐。禁用重放攻击保护。",
   "disable_bpf": "禁用 BPF 过滤器",
   "disable_bpf_hint": "ⓘ 禁用内核空间的 BPF 过滤器。仅在怀疑有 bug 时使用。",
-
   "easy_faketcp": "Easy-FakeTCP",
   "aes128cfb": "AES-128-CFB",
   "auth_none": "无（仅调试）"
 }
-
-
-
-

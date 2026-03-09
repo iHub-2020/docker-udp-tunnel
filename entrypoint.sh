@@ -25,7 +25,7 @@ touch /app/logs/udp2raw.log 2>/dev/null || true
 chmod 644 /app/logs/udp2raw.log 2>/dev/null || true
 
 # 1. 初始化默认配置
-CONFIG_FILE="/app/config/udp-tunnel.json"
+CONFIG_FILE="/app/config/udp2raw.json"
 if [ ! -f "$CONFIG_FILE" ]; then
     echo "Initializing default configuration..."
     # 确保目录存在
@@ -57,7 +57,7 @@ ENABLE_HTTPS=${ENABLE_HTTPS:-false}
 
 if [ "$ENABLE_HTTPS" = "true" ]; then
     echo "Starting UDP Tunnel Web Interface in HTTPS mode..."
-    
+
     CERT_DIR="/app/config/certs"
     mkdir -p "$CERT_DIR"
     CERT_FILE="$CERT_DIR/server.crt"
@@ -70,9 +70,9 @@ if [ "$ENABLE_HTTPS" = "true" ]; then
             -out "$CERT_FILE" \
             -keyout "$KEY_FILE" \
             -days 3650 \
-            -subj "/CN=udp-tunnel-web"
+            -subj "/CN=docker-app-udp2raw"
     fi
-    
+
     # 追加 SSL 参数
     GUNICORN_CMD="$GUNICORN_CMD --certfile $CERT_FILE --keyfile $KEY_FILE"
 else

@@ -3,9 +3,9 @@
  * Author: iHub-2020
  * Date: 2026-01-14
  * Version: 2.5.0
- * Description: Modern UI theme for UDP Tunnel Manager
+ * Description: Modern UI theme for udp2raw Manager
  * Updated: Based on 2.4.3, refined for i18n integration and screenshot matching
- * GitHub: https://github.com/iHub-2020/docker-udp-tunnel
+ * GitHub: https://github.com/iHub-2020-Org/docker-app-udp2raw
  */
 
 /* ============================================
@@ -161,13 +161,13 @@ body {
     color: var(--text-primary);
 }
 
-.icon-dropdown { 
-    position: relative; 
+.icon-dropdown {
+    position: relative;
     display: inline-flex;
 }
 
-.icon-dropdown .icon-btn { 
-    width: 34px; 
+.icon-dropdown .icon-btn {
+    width: 34px;
     height: 34px;
     padding: 0;
 }
@@ -497,8 +497,8 @@ body {
     color: var(--text-muted);
 }
 
-.table-footer { 
-    border-top: 1px solid var(--border-color); 
+.table-footer {
+    border-top: 1px solid var(--border-color);
 }
 
 /* ============================================
@@ -743,8 +743,8 @@ body {
 /* ============================================
    Diagnostics Modal
    ============================================ */
-.diag-body { 
-    padding: 0 !important; 
+.diag-body {
+    padding: 0 !important;
     overflow-y: auto;
 }
 
@@ -876,12 +876,12 @@ body {
     overflow-x: auto;
 }
 
-.log-line { 
-    display: block; 
+.log-line {
+    display: block;
 }
 
-.log-time { 
-    color: #6b7280; 
+.log-time {
+    color: #6b7280;
 }
 
 .log-level-info { color: #3b82f6; }
@@ -908,34 +908,34 @@ body {
     .header-center { flex-direction: column; align-items: center; gap: 2px; }
     .container,
     .main-content { padding: 16px 12px; }
-    
+
     .status-bar-wrapper,
     .status-bar { flex-direction: column; gap: 10px; align-items: flex-start; }
     .btn-diag { width: 100%; justify-content: center; }
-    
-    .setting-row { 
-        flex-direction: column; 
-        min-height: auto; 
-        padding: 12px 20px; 
-        align-items: flex-start; 
-        gap: 8px; 
+
+    .setting-row {
+        flex-direction: column;
+        min-height: auto;
+        padding: 12px 20px;
+        align-items: flex-start;
+        gap: 8px;
     }
     .setting-label { width: 100%; text-align: left; padding-right: 0; }
-    
+
     .form-row { grid-template-columns: 1fr; gap: 8px; }
     .form-label { text-align: left; padding-top: 0; }
     .form-control { max-width: 100%; }
     .input-group { max-width: 100%; }
-    
+
     .modal { width: 95%; max-height: 90vh; }
     .modal-lg { max-width: 95%; }
     .modal-body { padding: 16px; }
-    
+
     .bottom-actions,
     .action-bar { flex-wrap: wrap; }
-    
+
     .diag-row { flex-direction: column; align-items: flex-start; gap: 4px; }
-    
+
     .log-actions { flex-direction: column; }
     .log-actions .btn { width: 100%; }
 }

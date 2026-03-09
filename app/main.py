@@ -4,12 +4,12 @@
 # Date: 2026-01-15
 # Version: 2.0.0
 # Description: Flask web server with session-based authentication
-# Updated: 
+# Updated:
 #   - ✅ Added login/logout routes
 #   - ✅ Added session management with @login_required decorator
 #   - ✅ Password configurable via WEB_PASSWORD env var (default: admin)
 #   - ✅ Fixed diagnostics iptables regex to capture all chains
-# GitHub: https://github.com/iHub-2020/docker-udp-tunnel
+# GitHub: https://github.com/iHub-2020-Org/docker-app-udp2raw
 # ----------------------------------------------------------------------
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 from functools import wraps
@@ -45,7 +45,7 @@ def login_required(f):
 # Logging Configuration
 # ----------------------------------------------------------------------
 LOG_DIR = '/app/logs'
-LOG_FILE = os.path.join(LOG_DIR, 'udp-tunnel.log')
+LOG_FILE = os.path.join(LOG_DIR, 'udp2raw-manager.log')
 os.makedirs(LOG_DIR, exist_ok=True)
 
 log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -72,7 +72,7 @@ logger.info(f"Logging initialized. Writing logs to {LOG_FILE}")
 # ----------------------------------------------------------------------
 # App Initialization
 # ----------------------------------------------------------------------
-config_file = os.getenv('CONFIG_PATH', '/app/config/udp-tunnel.json')
+config_file = os.getenv('CONFIG_PATH', '/app/config/udp2raw.json')
 config_mgr = ConfigManager(config_file)
 process_mgr = ProcessManager()
 
@@ -129,7 +129,7 @@ def get_config():
 def save_config():
     new_config = request.json
     apply_changes = request.args.get('apply', 'true').lower() != 'false'
-    
+
     if config_mgr.save(new_config):
         if apply_changes:
             logger.info("Configuration saved. Restarting tunnels...")
@@ -169,21 +169,21 @@ def get_diagnostics():
         'binary': {'installed': False, 'text': 'Not Found', 'hash': ''},
         'iptables': {'present': False, 'text': 'No rules detected', 'chains': []}
     }
-    
+
     binary_path = '/usr/local/bin/udp2raw'
-    
+
     # Check binary
     try:
         if os.path.exists(binary_path):
             file_hash = get_file_md5(binary_path)
-            
+
             result = subprocess.run(
                 [binary_path, '-h'],
                 capture_output=True,
                 text=True,
                 timeout=5
             )
-            
+
             if result.returncode == 0 or len(result.stdout + result.stderr) > 50:
                 diagnostics['binary'] = {
                     'installed': True,
@@ -214,7 +214,7 @@ def get_diagnostics():
             'text': f'Error: {str(e)[:50]}',
             'hash': ''
         }
-    
+
     # ✅ Check iptables rules - FIXED: capture ALL chains
     try:
         result = subprocess.run(
@@ -224,11 +224,11 @@ def get_diagnostics():
             timeout=10
         )
         output = result.stdout
-        
+
         # Find all udp2raw-related chains
         chain_matches = re.findall(r'(udp2rawDwrW_\w+)', output)
         unique_chains = list(set(chain_matches))
-        
+
         if unique_chains:
             diagnostics['iptables'] = {
                 'present': True,
@@ -247,7 +247,7 @@ def get_diagnostics():
             'text': f'Check failed: {str(e)[:30]}',
             'chains': []
         }
-    
+
     return jsonify(diagnostics)
 
 
@@ -256,10 +256,10 @@ def get_diagnostics():
 def get_logs():
     """Get recent logs from udp2raw processes"""
     lines = int(request.args.get('lines', 50))
-    
+
     try:
         logs = process_mgr.get_logs(lines)
-        
+
         if not logs:
             status = process_mgr.get_status()
             if status:
@@ -268,16 +268,16 @@ def get_logs():
                         logs.append(f"[INFO] [{t['id']}] PID: {t['pid']} - Running (waiting for output...)")
                     else:
                         logs.append(f"[WARN] [{t['id']}] Process not running")
-            
+
             if not logs:
                 config = config_mgr.load()
                 if not config.get('global', {}).get('enabled', False):
                     logs = ['[INFO] Service is disabled. Enable it in settings to start tunnels.']
                 else:
                     logs = ['[INFO] No tunnels configured or running.']
-        
+
         return jsonify({'logs': '\n'.join(logs)})
-    
+
     except Exception as e:
         logger.error(f"Failed to get logs: {e}")
         return jsonify({'logs': f'[ERROR] Error retrieving logs: {str(e)}'})
@@ -302,7 +302,7 @@ def reset_configuration():
     try:
         # Stop all running processes
         process_mgr.stop_all()
-        
+
         # Reset to default configuration
         default_config = {
             'global': {
@@ -315,14 +315,14 @@ def reset_configuration():
             'servers': [],
             'clients': []
         }
-        
+
         # Save default configuration
         if config_mgr.save(default_config):
             logger.info("Configuration reset to factory defaults")
             return jsonify({'status': 'success', 'message': 'Configuration reset to factory defaults.'})
         else:
             return jsonify({'status': 'error', 'message': 'Failed to reset configuration.'}), 500
-            
+
     except Exception as e:
         logger.error(f"Failed to reset configuration: {e}")
         return jsonify({'status': 'error', 'message': f'Reset failed: {str(e)}'}), 500

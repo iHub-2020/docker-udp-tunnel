@@ -3,8 +3,8 @@
  * Author: iHub-2020
  * Date: 2026-01-16
  * Version: 3.3.0
- * Description: Frontend logic for UDP Tunnel Manager
- * Changes: 
+ * Description: Frontend logic for udp2raw Manager
+ * Changes:
  *   - ✅ Changed extra_args from single-line input to DynamicList (multi-line)
  *   - ✅ Added addExtraArg() and removeExtraArg() functions
  *   - ✅ Updated openAddModal(), openEditModal(), saveModalData() to handle array format
@@ -25,13 +25,13 @@
         servers: [],
         clients: []
     };
-    
+
     let originalConfig = null;
     let modalState = { type: null, mode: 'add', index: -1 };
     let diagAutoRefresh = null;
 
     // ==================== Utility Functions ====================
-    
+
     /**
      * Get element by ID with error logging
      */
@@ -108,8 +108,8 @@
      * Show/hide element
      */
     function setDisplay(selector, display) {
-        const el = typeof selector === 'string' && selector.startsWith('.') 
-            ? getElBySelector(selector) 
+        const el = typeof selector === 'string' && selector.startsWith('.')
+            ? getElBySelector(selector)
             : getEl(selector);
         if (el) el.style.display = display;
     }
@@ -126,7 +126,7 @@
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             const data = await response.json();
-            
+
             config = {
                 global: {
                     enabled: false,
@@ -139,12 +139,12 @@
                 servers: Array.isArray(data.servers) ? data.servers : [],
                 clients: Array.isArray(data.clients) ? data.clients : []
             };
-            
+
             originalConfig = JSON.parse(JSON.stringify(config));
             applyConfigToUI();
             renderServerTable();
             renderClientTable();
-            
+
             console.log('Configuration loaded successfully');
         } catch (error) {
             console.error('Failed to load configuration:', error);
@@ -159,7 +159,7 @@
         try {
             const response = await fetch('/api/status');
             if (!response.ok) return;
-            
+
             const data = await response.json();
             updateStatusDisplay(data);
         } catch (error) {
@@ -177,15 +177,15 @@
                 fetch('/api/logs?lines=100'),
                 fetch('/api/diagnostics')
             ]);
-            
+
             const status = await statusRes.json();
             const logs = await logsRes.json();
             const diag = await diagRes.json();
-            
+
             // Merge diagnostics into status
             status.binary = diag.binary;
             status.iptables = diag.iptables;
-            
+
             updateDiagnosticsDisplay(status, logs);
         } catch (error) {
             console.error('Failed to load diagnostics:', error);
@@ -223,13 +223,13 @@
         const tunnels = data.tunnels || [];
         const activeCount = tunnels.filter(t => t.running).length;
         const isRunning = activeCount > 0;
-        
+
         const badge = getEl('serviceStatus');
         if (badge) {
             badge.textContent = isRunning ? 'Running' : 'Stopped';
             badge.className = 'status-badge ' + (isRunning ? 'running' : 'stopped');
         }
-        
+
         const countEl = getEl('tunnelCount');
         if (countEl) {
             const tunnelsText = countEl.querySelector('[data-i18n="tunnels_active"]');
@@ -239,7 +239,7 @@
                 countEl.textContent = `(${activeCount} tunnels active)`;
             }
         }
-        
+
         updateStatusTables(tunnels);
     }
 
@@ -271,7 +271,7 @@
                 });
             }
         }
-        
+
         const clientBody = getEl('clientStatusBody');
         if (clientBody) {
             clientBody.innerHTML = '';
@@ -303,19 +303,19 @@
      */
     function updateDiagnosticsDisplay(status, logs) {
         const tunnels = status.tunnels || [];
-        
+
         const table = getEl('diagTunnelTable');
         let tunnelBody = table ? table.querySelector('tbody') : getEl('diagTunnelBody');
-        
+
         if (tunnelBody) {
             tunnelBody.innerHTML = '';
-            
+
             config.servers.forEach((server, index) => {
                 const id = `server_${index}`;
                 const st = tunnels.find(t => t.id === id) || {};
                 const statusClass = st.running ? 'running' : (server.enabled !== false ? 'stopped' : 'disabled');
                 const statusText = st.running ? 'Running' : (server.enabled !== false ? 'Stopped' : 'Disabled');
-                
+
                 const row = `
                     <tr>
                         <td>${escapeHtml(server.alias || 'Server')}</td>
@@ -329,13 +329,13 @@
                 `;
                 tunnelBody.innerHTML += row;
             });
-            
+
             config.clients.forEach((client, index) => {
                 const id = `client_${index}`;
                 const st = tunnels.find(t => t.id === id) || {};
                 const statusClass = st.running ? 'running' : (client.enabled !== false ? 'stopped' : 'disabled');
                 const statusText = st.running ? 'Running' : (client.enabled !== false ? 'Stopped' : 'Disabled');
-                
+
                 const row = `
                     <tr>
                         <td>${escapeHtml(client.alias || 'Client')}</td>
@@ -349,12 +349,12 @@
                 `;
                 tunnelBody.innerHTML += row;
             });
-            
+
             if (config.servers.length === 0 && config.clients.length === 0) {
                 tunnelBody.innerHTML = '<tr class="empty-row"><td colspan="7" data-i18n="no_tunnels">No tunnels configured.</td></tr>';
             }
         }
-        
+
         const binaryEl = getEl('diagBinary');
         if (binaryEl && status.binary) {
             if (status.binary.installed) {
@@ -370,14 +370,14 @@
                 `;
             }
         }
-        
+
         const iptablesEl = getEl('diagIptables');
         if (iptablesEl && status.iptables) {
             if (status.iptables.present && status.iptables.chains && status.iptables.chains.length > 0) {
-                const chainList = status.iptables.chains.map(chain => 
+                const chainList = status.iptables.chains.map(chain =>
                     `<span class="diag-code">${escapeHtml(chain)}</span>`
                 ).join(' ');
-                
+
                 iptablesEl.innerHTML = `
                     <span class="status-icon success">✓</span>
                     <span>${escapeHtml(status.iptables.text)}</span>
@@ -390,14 +390,14 @@
                 `;
             }
         }
-        
+
         let logLines = [];
         if (logs.logs && typeof logs.logs === 'string') {
             logLines = logs.logs.split('\n').filter(l => l.trim());
         } else if (logs.lines && Array.isArray(logs.lines)) {
             logLines = logs.lines;
         }
-        
+
         const logContent = getEl('logContent');
         if (logContent) {
             if (logLines.length > 0) {
@@ -405,19 +405,19 @@
             } else {
                 logContent.innerHTML = '<span class="log-line" data-i18n="no_logs">No recent logs.</span>';
             }
-            
+
             const logContainer = getElBySelector('.log-container');
             if (logContainer) {
                 logContainer.scrollTop = logContainer.scrollHeight;
             }
         }
-        
+
         const timestamp = getEl('logTimestamp');
         if (timestamp) {
             timestamp.textContent = new Date().toLocaleTimeString();
         }
     }
-   
+
     /**
      * Format log line with highlighting
      */
@@ -435,21 +435,21 @@
             console.error('Server table body not found');
             return;
         }
-        
+
         tbody.innerHTML = '';
-        
+
         if (config.servers.length === 0) {
             tbody.innerHTML = '<tr class="empty-row"><td colspan="6" data-i18n="no_server_instances">No server instances.</td></tr>';
             return;
         }
-        
+
         config.servers.forEach((server, index) => {
             const row = `
                 <tr>
                     <td>${escapeHtml(server.alias || 'Server ' + index)}</td>
                     <td>
-                        <input type="checkbox" class="checkbox" 
-                               ${server.enabled !== false ? 'checked' : ''} 
+                        <input type="checkbox" class="checkbox"
+                               ${server.enabled !== false ? 'checked' : ''}
                                onchange="window.config.servers[${index}].enabled = this.checked">
                     </td>
                     <td>${server.listen_port || ''}</td>
@@ -474,21 +474,21 @@
             console.error('Client table body not found');
             return;
         }
-        
+
         tbody.innerHTML = '';
-        
+
         if (config.clients.length === 0) {
             tbody.innerHTML = '<tr class="empty-row"><td colspan="6" data-i18n="no_client_instances">No client instances.</td></tr>';
             return;
         }
-        
+
         config.clients.forEach((client, index) => {
             const row = `
                 <tr>
                     <td>${escapeHtml(client.alias || 'Client ' + index)}</td>
                     <td>
-                        <input type="checkbox" class="checkbox" 
-                               ${client.enabled !== false ? 'checked' : ''} 
+                        <input type="checkbox" class="checkbox"
+                               ${client.enabled !== false ? 'checked' : ''}
                                onchange="window.config.clients[${index}].enabled = this.checked">
                     </td>
                     <td>${escapeHtml(client.server_ip || '')}</td>
@@ -515,16 +515,16 @@
             console.error('extraArgsList container not found');
             return;
         }
-        
+
         const index = container.children.length;
         const div = document.createElement('div');
         div.className = 'extra-arg-item';
         div.setAttribute('data-index', index);
-        
+
         div.innerHTML = `
-            <input type="text" 
-                   class="extra-arg-input" 
-                   placeholder="--lower-level auto" 
+            <input type="text"
+                   class="extra-arg-input"
+                   placeholder="--lower-level auto"
                    value="${escapeHtml(value)}">
             <button type="button" class="btn-remove" onclick="removeExtraArg(${index})">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -533,7 +533,7 @@
                 </svg>
             </button>
         `;
-        
+
         container.appendChild(div);
     };
 
@@ -543,11 +543,11 @@
     window.removeExtraArg = function(index) {
         const container = getEl('extraArgsList');
         if (!container) return;
-        
+
         const item = container.querySelector(`[data-index="${index}"]`);
         if (item) {
             item.remove();
-            
+
             // Reindex remaining items
             Array.from(container.children).forEach((child, newIndex) => {
                 child.setAttribute('data-index', newIndex);
@@ -565,17 +565,17 @@
     function getExtraArgs() {
         const container = getEl('extraArgsList');
         if (!container) return [];
-        
+
         const inputs = container.querySelectorAll('.extra-arg-input');
         const args = [];
-        
+
         inputs.forEach(input => {
             const value = input.value.trim();
             if (value) {
                 args.push(value);
             }
         });
-        
+
         return args;
     }
 
@@ -585,10 +585,10 @@
     function setExtraArgs(args) {
         const container = getEl('extraArgsList');
         if (!container) return;
-        
+
         // Clear existing
         container.innerHTML = '';
-        
+
         // Add items
         if (Array.isArray(args) && args.length > 0) {
             args.forEach(arg => {
@@ -609,10 +609,10 @@
         const html = document.documentElement;
         const currentTheme = html.getAttribute('data-theme');
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
+
         html.setAttribute('data-theme', newTheme);
-        localStorage.setItem('udp_tunnel_theme', newTheme);
-        
+        localStorage.setItem('udp2raw_theme', newTheme);
+
         console.log(`Theme switched to: ${newTheme}`);
     };
 
@@ -637,7 +637,7 @@
         if (modal) {
             modal.classList.add('show');
             loadDiagnostics();
-            
+
             if (diagAutoRefresh) {
                 clearInterval(diagAutoRefresh);
             }
@@ -655,7 +655,7 @@
         if (modal) {
             modal.classList.remove('show');
         }
-        
+
         if (diagAutoRefresh) {
             clearInterval(diagAutoRefresh);
             diagAutoRefresh = null;
@@ -670,7 +670,7 @@
         if (modal) {
             modal.classList.remove('show');
         }
-        
+
         if (id === 'diagModal' && diagAutoRefresh) {
             clearInterval(diagAutoRefresh);
             diagAutoRefresh = null;
@@ -700,21 +700,21 @@
     window.saveAndApply = async function() {
         try {
             collectConfigFromUI();
-            
+
             const response = await fetch('/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to save configuration');
             }
-            
+
             originalConfig = JSON.parse(JSON.stringify(config));
             alert('Configuration saved and applied successfully!');
             loadStatus();
-            
+
         } catch (error) {
             console.error('Save error:', error);
             alert('Failed to save configuration: ' + error.message);
@@ -727,20 +727,20 @@
     window.saveOnly = async function() {
         try {
             collectConfigFromUI();
-            
+
             const response = await fetch('/api/config?apply=false', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(config)
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to save configuration');
             }
-            
+
             originalConfig = JSON.parse(JSON.stringify(config));
             alert('Configuration saved (not applied).');
-            
+
         } catch (error) {
             console.error('Save error:', error);
             alert('Failed to save configuration: ' + error.message);
@@ -769,7 +769,7 @@
                        '• Reset global settings to defaults\n' +
                        '• Remove all iptables rules\n\n' +
                        'This action cannot be undone. Continue?';
-        
+
         if (confirm(message)) {
             resetAllConfiguration();
         }
@@ -784,11 +784,11 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });
-            
+
             if (!response.ok) {
                 throw new Error('Failed to reset configuration');
             }
-            
+
             // Reset to default config
             config = {
                 global: {
@@ -801,15 +801,15 @@
                 servers: [],
                 clients: []
             };
-            
+
             originalConfig = JSON.parse(JSON.stringify(config));
             applyConfigToUI();
             renderServerTable();
             renderClientTable();
             loadStatus();
-            
+
             alert('Configuration has been reset to factory defaults.');
-            
+
         } catch (error) {
             console.error('Reset error:', error);
             alert('Failed to reset configuration: ' + error.message);
@@ -821,18 +821,18 @@
      */
     window.exportConfig = function(type) {
         const data = type === 'server' ? config.servers : config.clients;
-        const filename = `udp-tunnel-${type}s-${new Date().toISOString().split('T')[0]}.json`;
-        
+        const filename = `udp2raw-${type}s-${new Date().toISOString().split('T')[0]}.json`;
+
         const exportData = {
             version: '3.3.0',
             type: type + 's',
             exported_at: new Date().toISOString(),
             data: data
         };
-        
+
         const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
-        
+
         const a = document.createElement('a');
         a.href = url;
         a.download = filename;
@@ -840,7 +840,7 @@
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        
+
         console.log(`Exported ${data.length} ${type}(s) to ${filename}`);
     };
 
@@ -851,27 +851,27 @@
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = '.json';
-        
+
         input.onchange = function(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
+
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const importData = JSON.parse(e.target.result);
-                    
+
                     // Validate import data
                     if (!importData.data || !Array.isArray(importData.data)) {
                         throw new Error('Invalid file format: missing data array');
                     }
-                    
+
                     if (importData.type && importData.type !== type + 's') {
                         if (!confirm(`This file contains ${importData.type} but you're importing to ${type}s. Continue anyway?`)) {
                             return;
                         }
                     }
-                    
+
                     // Validate each item
                     const validItems = [];
                     for (const item of importData.data) {
@@ -879,38 +879,38 @@
                             validItems.push(item);
                         }
                     }
-                    
+
                     if (validItems.length === 0) {
                         alert('No valid items found in the import file.');
                         return;
                     }
-                    
+
                     const message = `Import ${validItems.length} ${type}(s)?\n\n` +
                                    `This will add to existing configurations.`;
-                    
+
                     if (confirm(message)) {
                         if (type === 'server') {
                             config.servers.push(...validItems);
                         } else {
                             config.clients.push(...validItems);
                         }
-                        
+
                         renderServerTable();
                         renderClientTable();
-                        
+
                         alert(`Successfully imported ${validItems.length} ${type}(s).`);
                         console.log(`Imported ${validItems.length} ${type}(s)`);
                     }
-                    
+
                 } catch (error) {
                     console.error('Import error:', error);
                     alert('Failed to import configuration: ' + error.message);
                 }
             };
-            
+
             reader.readAsText(file);
         };
-        
+
         input.click();
     };
 
@@ -919,14 +919,14 @@
      */
     function validateConfigItem(item, type) {
         if (!item || typeof item !== 'object') return false;
-        
+
         if (type === 'server') {
-            return item.hasOwnProperty('listen_port') && 
-                   item.hasOwnProperty('forward_ip') && 
+            return item.hasOwnProperty('listen_port') &&
+                   item.hasOwnProperty('forward_ip') &&
                    item.hasOwnProperty('forward_port');
         } else {
-            return item.hasOwnProperty('server_ip') && 
-                   item.hasOwnProperty('server_port') && 
+            return item.hasOwnProperty('server_ip') &&
+                   item.hasOwnProperty('server_port') &&
                    item.hasOwnProperty('local_port');
         }
     }
@@ -936,9 +936,9 @@
      */
     window.openAddModal = function(type) {
         console.log(`Opening add modal for: ${type}`);
-        
+
         modalState = { type, mode: 'add', index: -1 };
-        
+
         const titleEl = getEl('editModalTitle');
         if (titleEl) {
             if (type === 'server') {
@@ -949,14 +949,14 @@
                 titleEl.textContent = 'New Client';
             }
         }
-        
+
         document.querySelectorAll('.server-field').forEach(el => {
             el.style.display = type === 'server' ? '' : 'none';
         });
         document.querySelectorAll('.client-field').forEach(el => {
             el.style.display = type === 'client' ? '' : 'none';
         });
-        
+
         setCheck('editEnable', true);
         setVal('editAlias', type === 'server' ? 'New Server' : 'New Client');
         setVal('editPassword', '');
@@ -973,10 +973,10 @@
         // setVal('editDev', '');
         // setCheck('editDisableAntiReplay', false);
         // setCheck('editDisableBpf', false);
-        
+
         // Initialize extra args with one empty line
         setExtraArgs([]);
-        
+
         if (type === 'server') {
             setVal('editWanAddress', '0.0.0.0');
             setVal('editWanPort', '29900');
@@ -988,16 +988,16 @@
             setVal('editLocalAddress', '127.0.0.1');
             setVal('editLocalPort', '3333');
         }
-        
+
         const basicTab = getEl('basicTab');
         const advancedTab = getEl('advancedTab');
         if (basicTab) basicTab.classList.add('active');
         if (advancedTab) advancedTab.classList.remove('active');
-        
+
         document.querySelectorAll('.modal-tab').forEach(tab => {
             tab.classList.toggle('active', tab.getAttribute('data-target') === 'basicTab');
         });
-        
+
         const modal = getEl('editModal');
         if (modal) {
             modal.classList.add('show');
@@ -1011,27 +1011,27 @@
      */
     window.openEditModal = function(type, index) {
         console.log(`Opening edit modal for: ${type}[${index}]`);
-        
+
         modalState = { type, mode: 'edit', index };
-        
+
         const item = type === 'server' ? config.servers[index] : config.clients[index];
         if (!item) {
             console.error(`Item not found: ${type}[${index}]`);
             return;
         }
-        
+
         const titleEl = getEl('editModalTitle');
         if (titleEl) {
             titleEl.textContent = item.alias || (type === 'server' ? 'Server' : 'Client');
         }
-        
+
         document.querySelectorAll('.server-field').forEach(el => {
             el.style.display = type === 'server' ? '' : 'none';
         });
         document.querySelectorAll('.client-field').forEach(el => {
             el.style.display = type === 'client' ? '' : 'none';
         });
-        
+
         setCheck('editEnable', item.enabled !== false);
         setVal('editAlias', item.alias || '');
         setVal('editPassword', item.password || '');
@@ -1048,7 +1048,7 @@
         // setVal('editDev', item.dev || '');
         // setCheck('editDisableAntiReplay', item.disable_anti_replay || false);
         // setCheck('editDisableBpf', item.disable_bpf || false);
-        
+
         // Load extra args (support both array and string for backward compatibility)
         let extraArgs = item.extra_args || [];
         if (typeof extraArgs === 'string') {
@@ -1056,7 +1056,7 @@
             extraArgs = extraArgs.trim() ? extraArgs.split(/\s+/) : [];
         }
         setExtraArgs(extraArgs);
-        
+
         if (type === 'server') {
             setVal('editWanAddress', item.listen_ip || '0.0.0.0');
             setVal('editWanPort', item.listen_port || '29900');
@@ -1068,16 +1068,16 @@
             setVal('editLocalAddress', item.local_ip || '127.0.0.1');
             setVal('editLocalPort', item.local_port || '3333');
         }
-        
+
         const basicTab = getEl('basicTab');
         const advancedTab = getEl('advancedTab');
         if (basicTab) basicTab.classList.add('active');
         if (advancedTab) advancedTab.classList.remove('active');
-        
+
         document.querySelectorAll('.modal-tab').forEach(tab => {
             tab.classList.toggle('active', tab.getAttribute('data-target') === 'basicTab');
         });
-        
+
         const modal = getEl('editModal');
         if (modal) {
             modal.classList.add('show');
@@ -1089,9 +1089,9 @@
      */
     window.saveModalData = function() {
         console.log('Saving modal data...');
-        
+
         const isServer = modalState.type === 'server';
-        
+
         if (isServer) {
             if (!getVal('editForwardIp')) {
                 alert('Forward To IP is required for server instances.');
@@ -1103,7 +1103,7 @@
                 return;
             }
         }
-        
+
         const item = {
             enabled: getCheck('editEnable'),
             alias: getVal('editAlias'),
@@ -1118,10 +1118,10 @@
             // dev: getVal('editDev'),
             // disable_anti_replay: getCheck('editDisableAntiReplay'),
             // disable_bpf: getCheck('editDisableBpf'),
-            
+
             extra_args: getExtraArgs()  // ✅ Now returns array instead of string
         };
-        
+
         if (isServer) {
             item.listen_ip = getVal('editWanAddress');
             item.listen_port = parseInt(getVal('editWanPort')) || 29900;
@@ -1137,7 +1137,7 @@
             item.source_port = sourcePort ? parseInt(sourcePort) : '';
             item.seq_mode = parseInt(getVal('editSeqMode')) || 3;
         }
-        
+
         if (modalState.mode === 'add') {
             if (isServer) {
                 config.servers.push(item);
@@ -1151,11 +1151,11 @@
                 config.clients[modalState.index] = item;
             }
         }
-        
+
         window.closeModal('editModal');
         renderServerTable();
         renderClientTable();
-        
+
         console.log('Modal data saved successfully');
     };
 
@@ -1165,17 +1165,17 @@
     window.deleteInstance = function(type, index) {
         const item = type === 'server' ? config.servers[index] : config.clients[index];
         const name = item ? (item.alias || `${type} ${index}`) : `${type} ${index}`;
-        
+
         if (confirm(`Are you sure you want to delete "${name}"?`)) {
             if (type === 'server') {
                 config.servers.splice(index, 1);
             } else {
                 config.clients.splice(index, 1);
             }
-            
+
             renderServerTable();
             renderClientTable();
-            
+
             console.log(`Deleted ${type}[${index}]`);
         }
     };
@@ -1202,43 +1202,43 @@
      * Initialize application
      */
     function init() {
-        console.log('UDP Tunnel Manager - Initializing...');
-        
-        const savedTheme = localStorage.getItem('udp_tunnel_theme') || 'dark';
+        console.log('udp2raw Manager - Initializing...');
+
+        const savedTheme = localStorage.getItem('udp2raw_theme') || 'dark';
         document.documentElement.setAttribute('data-theme', savedTheme);
-        
+
         document.querySelectorAll('.sub-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const container = this.closest('.section-body');
                 const targetId = this.getAttribute('data-target');
-                
+
                 container.querySelectorAll('.sub-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
-                
+
                 container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 const targetEl = getEl(targetId);
                 if (targetEl) targetEl.classList.add('active');
-                
+
                 if (targetId.includes('Status')) {
                     loadStatus();
                 }
             });
         });
-        
+
         document.querySelectorAll('.modal-tab').forEach(tab => {
             tab.addEventListener('click', function() {
                 const container = this.closest('.modal');
                 const targetId = this.getAttribute('data-target');
-                
+
                 container.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
-                
+
                 container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
                 const targetEl = getEl(targetId);
                 if (targetEl) targetEl.classList.add('active');
             });
         });
-        
+
         const editModal = getEl('editModal');
         if (editModal) {
             editModal.addEventListener('click', function(e) {
@@ -1247,7 +1247,7 @@
                 }
             });
         }
-        
+
         const diagModal = getEl('diagModal');
         if (diagModal) {
             diagModal.addEventListener('click', function(e) {
@@ -1256,19 +1256,19 @@
                 }
             });
         }
-        
+
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.icon-dropdown')) {
                 document.querySelectorAll('.icon-dropdown').forEach(d => d.classList.remove('open'));
             }
         });
-        
+
         loadConfig();
         loadStatus();
-        
+
         setInterval(loadStatus, 5000);
-        
-        console.log('UDP Tunnel Manager - Ready');
+
+        console.log('udp2raw Manager - Ready');
     }
 
     if (document.readyState === 'loading') {
